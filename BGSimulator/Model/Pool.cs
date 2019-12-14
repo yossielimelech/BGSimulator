@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BGSimulator.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -220,18 +221,13 @@ namespace BGSimulator.Model
             lock (poolMinions)
             {
                 var minionsFromRank = poolMinions.Where(m => m.MinionTier.Tier <= rank).ToArray();
-                Shuffle(ref minionsFromRank);
+                minionsFromRank = Shuffle(minionsFromRank) as IMinion[];
                 var minion = minionsFromRank[rank];
                 poolMinions.Remove(minion);
                 return minion;
             }
         }
 
-        private void Shuffle(ref IMinion[] minionsArray)
-        {
-            RNGCryptoServiceProvider rnd = new RNGCryptoServiceProvider();
-            minionsArray = minionsArray.OrderBy(x => GetNextInt32(rnd)).ToArray();
-        }
         public void Return(IMinion minion)
         {
             lock (poolMinions)
@@ -253,7 +249,7 @@ namespace BGSimulator.Model
             int sum = 0;
             int rank = 0;
             var total = Enumerable.Range(1, maxRank).Sum();
-            int rand = new Random().Next(1, total);
+            int rand = RandomNumber(1, total);
 
             for (int i = 0; i < maxRank; i++)
             {

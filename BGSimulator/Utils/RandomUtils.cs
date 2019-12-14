@@ -9,11 +9,28 @@ namespace BGSimulator.Utils
 {
     public static class RandomUtils
     {
-        public static int GetNextInt32(RNGCryptoServiceProvider rnd)
+        public static readonly Random random = new Random();
+        private static readonly object syncLock = new object();
+
+        public static int RandomNumber(int min, int max)
         {
-            byte[] randomInt = new byte[4];
-            rnd.GetBytes(randomInt);
-            return Convert.ToInt32(randomInt[0]);
+            lock (syncLock)
+            {
+                return random.Next(min, max);
+            }
+        }
+
+        public static object[] Shuffle(object[] array)
+        {
+            for (int i = 0; i < array.Length; i++)
+            {
+                int rnd = RandomNumber(0, array.Length);
+                var temp = array[rnd];
+                array[rnd] = array[i];
+                array[i] = temp;
+            }
+
+            return array;
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static BGSimulator.Utils.RandomUtils;
 
 namespace BGSimulator.Model
 {
@@ -58,7 +59,7 @@ namespace BGSimulator.Model
             }
         }
 
-        public bool Play(IMinion minion)
+        public bool Play(IMinion minion, IMinion target = null)
         {
             for (int i = 0; i < BOARD_SIZE; i++)
             {
@@ -67,7 +68,7 @@ namespace BGSimulator.Model
                     PlayedMinions[i] = minion;
                     for (int j = 0; j < minion.Level; j++)
                     {
-                        minion.OnPlayed(new TriggerParams() { Activator = minion, Index = i, Board = this, Player = Player });
+                        minion.OnPlayed(new TriggerParams() { Activator = minion, Index = i, Target = target, Board = this, Player = Player });
                     }
                     OnMinionSummon(minion, i);
                     return true;
@@ -77,7 +78,7 @@ namespace BGSimulator.Model
             return false;
         }
 
-        public void Buff(IMinion minion, int attack = 0,int health = 0, Attribute attributes = Attribute.None)
+        public void Buff(IMinion minion, int attack = 0, int health = 0, Attribute attributes = Attribute.None)
         {
             minion.Attack += attack;
             minion.Health += health;
@@ -97,8 +98,7 @@ namespace BGSimulator.Model
         public IMinion SellRandomMinion()
         {
             var minions = PlayedMinions.Where(m => m != null).Select((m, i) => new { minion = m, index = i }).ToArray();
-            Random r = new Random();
-            int index = minions[r.Next(0, minions.Length)].index;
+            int index = minions[RandomNumber(0, minions.Length)].index;
             var toSell = PlayedMinions[index];
             PlayedMinions[index] = null;
             return toSell;
@@ -115,7 +115,13 @@ namespace BGSimulator.Model
 
         public IMinion GetRandomMinion(MinionType type = MinionType.All)
         {
-            return PlayedMinions.FirstOrDefault(m => m != null && (m.MinionType.HasFlag(type)));
+            var minions = PlayedMinions.Where(m => m != null && (m.MinionType.HasFlag(type))).ToArray();
+
+            if (!minions.Any())
+                return null;
+
+            var minion = minions[RandomNumber(0, minions.Length)];
+            return minion;
         }
     }
 }
