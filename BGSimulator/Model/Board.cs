@@ -18,6 +18,8 @@ namespace BGSimulator.Model
             Initialize();
         }
 
+        public Player Player { get; set; }
+
         private void Initialize()
         {
             PlayedMinions = new IMinion[BOARD_SIZE];
@@ -42,11 +44,16 @@ namespace BGSimulator.Model
 
         public void RoundStart()
         {
-            foreach (var minion in PlayedMinions.Where(m => m != null))
+            for (int i = 0; i < BOARD_SIZE; i++)
             {
-                for (int i = 0; i < minion.Level; i++)
+                if (PlayedMinions[i] != null)
                 {
-                    minion.OnTurnStart(minion, this, 0);
+                    var minion = PlayedMinions[i];
+
+                    for (int j = 0; j < minion.Level; j++)
+                    {
+                        minion.OnTurnStart(new TriggerParams() { Activator = minion, Index = i, Board = this, Player = Player });
+                    }
                 }
             }
         }
@@ -60,7 +67,7 @@ namespace BGSimulator.Model
                     PlayedMinions[i] = minion;
                     for (int j = 0; j < minion.Level; j++)
                     {
-                        minion.OnPlayed(minion, this, i);
+                        minion.OnPlayed(new TriggerParams() { Activator = minion, Index = i, Board = this, Player = Player });
                     }
                     OnMinionSummon(minion, i);
                     return true;
@@ -70,11 +77,18 @@ namespace BGSimulator.Model
             return false;
         }
 
+        public void Buff(IMinion minion, int attack = 0,int health = 0, Attribute attributes = Attribute.None)
+        {
+            minion.Attack += attack;
+            minion.Health += health;
+            minion.Attributes |= attributes;
+        }
+
         private void OnMinionSummon(IMinion minion, int index)
         {
             foreach (IMinion active in ActiveMinions)
             {
-                active.OnMinionSummon(active, minion, this, index);
+                active.OnMinionSummon(new TriggerParams() { Activator = minion, Board = this, Player = Player });
             }
         }
 
@@ -90,9 +104,18 @@ namespace BGSimulator.Model
             return toSell;
         }
 
-        public IMinion GetRandomMinion()
+        public void BuffRandom(int attack = 0, int health = 0, Attribute attributes = Attribute.None, MinionType type = MinionType.All)
         {
-            return PlayedMinions.FirstOrDefault(m => m != null);
+            var buffee = GetRandomMinion(type);
+            if (buffee == null)
+                return;
+
+            Buff(buffee, attack, health, attributes);
+        }
+
+        public IMinion GetRandomMinion(MinionType type = MinionType.All)
+        {
+            return PlayedMinions.FirstOrDefault(m => m != null && (m.MinionType.HasFlag(type)));
         }
     }
 }

@@ -20,13 +20,15 @@ namespace BGSimulator.Model
     [Flags]
     public enum MinionType
     {
-        Amalgam = ~0,
+        None = 0,
+        Amalgam = Beast | Demon | Dragon | Mech | Murloc,
         Beast = 1,
         Demon = 2,
         Dragon = 4,
         Mech = 8,
         Murloc = 16,
-        Neutral = 32
+        Neutral = 32,
+        All = ~0
     }
 
     [Flags]

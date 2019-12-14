@@ -19,11 +19,11 @@ namespace BGSimulator.Model
         public int Health { get; set; }
         public int Attack { get; set; }
         public bool PoolMinion { get; set; } = true;
-        public Action<IMinion, Board, int> OnPlayed { get; set; } = delegate { };
-        public Action<IMinion, Board, int> OnDeath { get; set; } = delegate { };
-        public Action<IMinion, Board, int> OnTurnStart { get; set; } = delegate { };
-        public Action<IMinion, Board, int> OnTurnEnd { get; set; } = delegate { };
-        public Action<IMinion, IMinion, Board, int> OnMinionSummon { get; set; } = delegate { };
+        public Action<TriggerParams> OnPlayed { get; set; } = delegate { };
+        public Action<TriggerParams> OnDeath { get; set; } = delegate { };
+        public Action<TriggerParams> OnTurnStart { get; set; } = delegate { };
+        public Action<TriggerParams> OnTurnEnd { get; set; } = delegate { };
+        public Action<TriggerParams> OnMinionSummon { get; set; } = delegate { };
 
         public IMinion Clone(bool fullClone = false)
         {

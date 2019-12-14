@@ -41,7 +41,6 @@ namespace BGSimulator.Model
         {
             pool = new Pool();
             shop = new BobsShop() { Pool = pool };
-            board = new Board() { Pool = pool };
             CreatePlayers();
         }
 

@@ -17,13 +17,14 @@ namespace BGSimulator.Model
         public int Health { get; set; } = 40;
         public bool IsDead { get => Health <= 0; }
         public IMinion[] Hand { get; set; } = new IMinion[MAX_HAND_SIZE];
-        public Board Board { get; set; } = new Board();
+        public Board Board { get; set; }
         public List<IMinion> ShopOffer { get; set; } = new List<IMinion>();
         public IShop Shop { get; set; }
         public IBrain Brain { get; set; }
 
         public Player()
         {
+            Board = new Board() { Player = this };
         }
 
         public void PlayRound()
