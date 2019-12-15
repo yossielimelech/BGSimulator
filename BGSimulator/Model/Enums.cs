@@ -34,8 +34,9 @@ namespace BGSimulator.Model
     [Flags]
     public enum MinionTag
     {
-        Normal = 0,
-        Targeted = 1
+        None = 0,
+        Targeted = 1,
+        PlayerImmunity = 2,
     }
 
     public enum Direction

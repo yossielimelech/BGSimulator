@@ -104,7 +104,7 @@ namespace BGSimulator.Model
             {
                 IMinion target = null;
                 var minion = Hand[i];
-                if(minion.Tags.HasFlag(MinionTag.Targeted))
+                if (minion.Tags.HasFlag(MinionTag.Targeted))
                 {
                     var targets = Board.GetValidTargets(minion.ValidTargets);
                     if (targets.Any())
@@ -120,6 +120,13 @@ namespace BGSimulator.Model
             }
         }
 
+        public void TakeDamage(int damage)
+        {
+            if (Board.PlayedMinions.Any(m => m.Tags.HasFlag(MinionTag.PlayerImmunity)))
+                return;
+
+            Health -= damage;
+        }
 
         private IMinion ChooseRandomTarget(List<IMinion> targets)
         {

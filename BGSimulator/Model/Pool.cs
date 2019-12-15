@@ -11,10 +11,24 @@ namespace BGSimulator.Model
 {
     public class Pool
     {
-
         List<IMinion> allMinions;
         List<IMinion> poolMinions;
-        public Pool()
+
+        private static Pool instance;
+        public static Pool Instance
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    instance = new Pool();
+                }
+
+                return instance;
+            }
+        }
+
+        private Pool()
         {
             Initialize();
         }
@@ -37,11 +51,11 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Mech, Name = "Micro Machine", Attack = 1, Health = 2, MinionTier = MinionTier.Ranks[1], OnTurnStart = (tp) => { tp.Board.Buff(minion: tp.Activator, attack: 1); } },
 
-                new MinionBase() { MinionType = MinionType.Murloc, Name = "Murlock Tidecaller", Attack = 1, Health = 2, MinionTier = MinionTier.Ranks[1], OnMinionSummon = (tp) => { if(tp.Summon.MinionType == MinionType.Murloc) { tp.Board.Buff(minion: tp.Activator, attack: 1); } } },
+                new MinionBase() { MinionType = MinionType.Murloc, Name = "Murloc Tidecaller", Attack = 1, Health = 2, MinionTier = MinionTier.Ranks[1], OnMinionSummon = (tp) => { if(tp.Summon.MinionType == MinionType.Murloc) { tp.Board.Buff(minion: tp.Activator, attack: 1); } } },
 
-                new MinionBase() { MinionType = MinionType.Murloc, Name = "Murlock Tidehunter", Attack = 2, Health = 1, MinionTier = MinionTier.Ranks[1], OnPlayed = (tp) => tp.Board.Summon("Murlock Scout",tp.Index) },
+                new MinionBase() { MinionType = MinionType.Murloc, Name = "Murloc Tidehunter", Attack = 2, Health = 1, MinionTier = MinionTier.Ranks[1], OnPlayed = (tp) => tp.Board.Summon("Murloc Scout",tp.Index) },
 
-                new MinionBase() { MinionType = MinionType.Murloc, Name = "Murlock Scout", Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[1], PoolMinion = false },
+                new MinionBase() { MinionType = MinionType.Murloc, Name = "Murloc Scout", Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[1], PoolMinion = false },
 
                 new MinionBase() { MinionType = MinionType.Neutral, Name = "Righteos Protector", Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[1] },
 
@@ -49,11 +63,11 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Neutral, Name = "Selfless Hero", Attack = 2, Health = 1, MinionTier = MinionTier.Ranks[1], OnDeath = (tp) => { tp.Board.BuffRandom(attributes: Attribute.DivineShield); } },
 
-                new MinionBase() { MinionType = MinionType.Demon, Name = "Voidwalker", Attack = 1,Health =3 , MinionTier = MinionTier.Ranks[1]},
+                new MinionBase() { MinionType = MinionType.Demon, Name = "Voidwalker", Attack = 1, Health = 3 , MinionTier = MinionTier.Ranks[1], Attributes = Attribute.Taunt },
 
-                new MinionBase() { MinionType = MinionType.Demon, Name = "Vulgar Homunculus", Attack = 2,Health =4 , MinionTier =MinionTier.Ranks[1]},
+                new MinionBase() { MinionType = MinionType.Demon, Name = "Vulgar Homunculus", Attack = 2,Health = 4 , MinionTier = MinionTier.Ranks[1], Attributes = Attribute.Taunt, OnPlayed = (tp) => { tp.Player.TakeDamage(2); } },
 
-                new MinionBase() { MinionType = MinionType.Neutral, Name = "Wrath Weaver", Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[1] },
+                new MinionBase() { MinionType = MinionType.Neutral, Name = "Wrath Weaver", Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[1], OnMinionSummon = (tp) => { if (tp.Summon.MinionType.HasFlag(MinionType.Demon)) { tp.Player.TakeDamage(1); } } },
 
                 //Tier 2
                 new MinionBase() { MinionType = MinionType.Mech, Name = "Annoy-o-Tron", Attack = 1, Health = 2, Attributes = Attribute.Taunt | Attribute.DivineShield, MinionTier = MinionTier.Ranks[2] },

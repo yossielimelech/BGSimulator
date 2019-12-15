@@ -13,7 +13,7 @@ namespace BGSimulator.Model
         public string Name { get; set; }
         public MinionTier MinionTier { get; set; } = MinionTier.Ranks[1];
         public Attribute Attributes { get; set; } = Attribute.None;
-        public MinionTag Tags { get; set; } = MinionTag.Normal;
+        public MinionTag Tags { get; set; } = MinionTag.None;
         public MinionType ValidTargets { get; set; } = MinionType.All;
         public int Level { get; set; } = 1;
         public int Health { get; set; }

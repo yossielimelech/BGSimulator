@@ -11,7 +11,6 @@ namespace BGSimulator.Model
         const int NUM_OF_PLAYERS = 8;
         const int MAX_GOLD = 10;
 
-        Board board;
         BobsShop shop;
         Pool pool;
         Player[] players;
@@ -39,7 +38,7 @@ namespace BGSimulator.Model
 
         private void Initialize()
         {
-            pool = new Pool();
+            pool = Pool.Instance;
             shop = new BobsShop() { Pool = pool };
             CreatePlayers();
         }

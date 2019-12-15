@@ -13,8 +13,6 @@ namespace BGSimulator.Model
 
         public List<IMinion> PlayedMinions { get; set; }
 
-        public Pool Pool { get; set; }
-
         public Board()
         {
             Initialize();
@@ -34,7 +32,7 @@ namespace BGSimulator.Model
                 return;
             }
 
-            var summoned = Pool.GetCopy(minionName);
+            var summoned = Pool.Instance.GetCopy(minionName);
             PlayedMinions.Insert(direction == Direction.Left ? index : index + 1, summoned);
             OnMinionSummon(summoned, index);
         }
@@ -58,19 +56,19 @@ namespace BGSimulator.Model
 
         public void Play(IMinion minion, int index = 0, IMinion target = null)
         {
+            OnMinionSummon(minion, index);
             PlayedMinions.Insert(index, minion);
             for (int j = 0; j < minion.Level; j++)
             {
                 minion.OnPlayed(new TriggerParams() { Activator = minion, Index = index, Target = target, Board = this, Player = Player });
             }
-            OnMinionSummon(minion, index);
         }
 
         private void OnMinionSummon(IMinion summoned, int index)
         {
             foreach (IMinion minion in PlayedMinions)
             {
-                minion.OnMinionSummon(new TriggerParams() { Activator = minion, Summon = summoned, Board = this, Player = Player });
+                minion.OnMinionSummon(new TriggerParams() { Activator = minion, Index = index, Summon = summoned, Board = this, Player = Player });
             }
         }
 
