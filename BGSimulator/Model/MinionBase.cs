@@ -25,10 +25,19 @@ namespace BGSimulator.Model
         public Action<TriggerParams> OnTurnEnd { get; set; } = delegate { };
         public Action<TriggerParams> OnMinionSummon { get; set; } = delegate { };
 
+        public bool IsDead { get { return Health <= 0; } }
+
         public IMinion Clone(bool fullClone = false)
         {
             return this.MemberwiseClone() as IMinion;
         }
+
+        public void DoAttack(IMinion minion)
+        {
+            minion.TakeDamage(Attack);
+            TakeDamage(minion.Attack);
+        }
+
         public void TakeDamage(int damage)
         {
             if ((Attributes & Attribute.DivineShield) != 0)

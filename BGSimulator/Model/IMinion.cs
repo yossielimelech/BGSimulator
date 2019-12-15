@@ -20,7 +20,10 @@ namespace BGSimulator.Model
         Action<TriggerParams> OnTurnEnd { get; set; }
         Action<TriggerParams> OnTurnStart { get; set; }
         bool PoolMinion { get; set; }
+        bool IsDead { get; }
+
         IMinion Clone(bool fullClone = false);
         void TakeDamage(int damage);
+        void DoAttack(IMinion minion);
     }
 }

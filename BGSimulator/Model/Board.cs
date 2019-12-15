@@ -32,7 +32,7 @@ namespace BGSimulator.Model
                 return;
             }
 
-            var summoned = Pool.Instance.GetCopy(minionName);
+            var summoned = Pool.Instance.GetFreshCopy(minionName);
             PlayedMinions.Insert(direction == Direction.Left ? index : index + 1, summoned);
             OnMinionSummon(summoned, index);
         }
@@ -123,5 +123,11 @@ namespace BGSimulator.Model
             return PlayedMinions.Where(m => (validTargets & m.MinionType) != 0).ToList();
         }
 
+        public Board Clone()
+        {
+            var borad = this.MemberwiseClone() as Board;
+            borad.PlayedMinions = this.PlayedMinions.Select(m => m.Clone()).ToList();
+            return borad;
+        }
     }
 }

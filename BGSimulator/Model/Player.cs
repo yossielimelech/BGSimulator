@@ -124,6 +124,7 @@ namespace BGSimulator.Model
                 }
             }
         }
+       
 
         public void TakeDamage(int damage)
         {

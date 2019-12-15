@@ -58,7 +58,7 @@ namespace BGSimulator.Model
         private void PlayerDied(Player player)
         {
             LastPlayerDied = player;
-            Console.WriteLine(string.Format(@"{0} has died a horrible death", LastPlayerDied.Name));
+            Console.WriteLine(string.Format(@"DEATH: {0} has died a horrible death", LastPlayerDied.Name));
         }
 
         public async void Start()
@@ -99,7 +99,50 @@ namespace BGSimulator.Model
 
             // Start battle phase
             MatchPlayers();
+            await StartBattlesAsync();
+        }
 
+        private async Task StartBattlesAsync()
+        {
+            List<Task> battles = new List<Task>();
+            List<Player> fighters = new List<Player>();
+
+            foreach (var player in players)
+            {
+                if (!fighters.Contains(player))
+                {
+                    var task = Task.Run(() =>
+                    {
+                        Fight(player, player.CurrentMatch);
+                    });
+
+                    fighters.Add(player);
+                    fighters.Add(player.CurrentMatch);
+                    battles.Add(task);
+                }
+            }
+
+            await Task.WhenAll(battles);
+        }
+
+        private void Fight(Player playerA, Player playerB)
+        {
+            var p1board = playerA.Board.Clone();
+            var p2board = playerB.Board.Clone();
+
+            int p1Attacker = 0;
+            int p2Attacker = 0;
+
+            while (!p1board.IsEmpty && !p2board.IsEmpty)
+            {
+                p1Attacker %= p1board.PlayedMinions.Count;
+                p2Attacker %= p2board.PlayedMinions.Count;
+                var minion1 = p1board.PlayedMinions[p1Attacker];
+                var minion2 = p2board.PlayedMinions[p2Attacker];
+                minion1.DoAttack(minion2);
+                if (minion1.IsDead)
+                    minion1.OnDeath(new TriggerParams() { Activator = minion1, Board = p1board, Index = p1Attacker, Player = playerA });
+            }
         }
 
         private void MatchPlayers()

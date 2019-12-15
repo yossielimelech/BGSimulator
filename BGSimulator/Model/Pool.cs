@@ -234,8 +234,8 @@ namespace BGSimulator.Model
             int rank = GetRandomRank(maxRank);
             lock (poolMinions)
             {
-                var minionsFromRank = poolMinions.Where(m => m.MinionTier.Tier <= rank).ToArray();
-                minionsFromRank = Shuffle(minionsFromRank) as IMinion[];
+                var minionsFromRank = poolMinions.Where(m => m.MinionTier.Tier <= rank).ToList();
+                minionsFromRank.Shuffle();
                 var minion = minionsFromRank[rank];
                 poolMinions.Remove(minion);
                 return minion;
@@ -244,9 +244,12 @@ namespace BGSimulator.Model
 
         public void Return(IMinion minion)
         {
+            if (!minion.PoolMinion)
+                return;
+
             lock (poolMinions)
             {
-                poolMinions.Add(GetCopy(minion.Name));
+                poolMinions.Add(GetFreshCopy(minion.Name));
             }
         }
 
@@ -292,7 +295,7 @@ namespace BGSimulator.Model
             }
         }
 
-        public IMinion GetCopy(string minionName)
+        public IMinion GetFreshCopy(string minionName)
         {
             return allMinions.First(m => m.Name == minionName)?.Clone();
         }
