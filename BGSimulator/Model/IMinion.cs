@@ -7,6 +7,8 @@ namespace BGSimulator.Model
         MinionType MinionType { get; set; }
         int Attack { get; set; }
         Attribute Attributes { get; set; }
+        MinionTag Tags { get; set; }
+        MinionType ValidTargets { get; set; }
         int Health { get; set; }
         int Level { get; set; }
         MinionTier MinionTier { get; set; }

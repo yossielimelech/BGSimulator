@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BGSimulator.Model
 {
-    public class Game
+    public class Simulation
     {
         const int NUM_OF_PLAYERS = 8;
         const int MAX_GOLD = 10;
@@ -17,13 +17,13 @@ namespace BGSimulator.Model
         Player[] players;
 
         public int Round { get; private set; } = 1;
-        private Game()
+        private Simulation()
         {
             Initialize();
         }
 
-        static Game instance;
-        public static Game Instance
+        static Simulation instance;
+        public static Simulation Instance
         {
             get
             {
@@ -32,7 +32,7 @@ namespace BGSimulator.Model
                     return instance;
                 }
 
-                instance = new Game();
+                instance = new Simulation();
                 return instance;
             }
         }
@@ -79,7 +79,6 @@ namespace BGSimulator.Model
 
                     runningPlayers.Add(task);
                 }
-                break;
             }
 
             await Task.WhenAll(runningPlayers);

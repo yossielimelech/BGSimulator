@@ -37,4 +37,10 @@ namespace BGSimulator.Model
         Normal = 0,
         Targeted = 1
     }
+
+    public enum Direction
+    {
+        Left = -1,
+        Right = 1
+    }
 }

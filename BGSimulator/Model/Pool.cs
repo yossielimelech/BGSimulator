@@ -45,7 +45,7 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Neutral, Name = "Righteos Protector", Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[1] },
 
-                new MinionBase() { MinionType = MinionType.Mech, Name = "Rockpool Hunter", Attack = 2, Health = 3, MinionTier = MinionTier.Ranks[1], Tags = MinionTag.Targeted, OnPlayed =(tp) => { tp.Board.Buff(minion: tp.Target, attack: 1, health: 1); } },
+                new MinionBase() { MinionType = MinionType.Mech, Name = "Rockpool Hunter", Attack = 2, Health = 3, MinionTier = MinionTier.Ranks[1], Tags = MinionTag.Targeted, ValidTargets = MinionType.Murloc, OnPlayed =(tp) => { if(tp.Target == null) return; tp.Board.Buff(minion: tp.Target, attack: 1, health: 1); } },
 
                 new MinionBase() { MinionType = MinionType.Neutral, Name = "Selfless Hero", Attack = 2, Health = 1, MinionTier = MinionTier.Ranks[1], OnDeath = (tp) => { tp.Board.BuffRandom(attributes: Attribute.DivineShield); } },
 
@@ -232,7 +232,7 @@ namespace BGSimulator.Model
         {
             lock (poolMinions)
             {
-                poolMinions.Add(minion);
+                poolMinions.Add(GetCopy(minion.Name));
             }
         }
 

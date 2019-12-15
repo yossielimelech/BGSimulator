@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static BGSimulator.Utils.RandomUtils;
 
 namespace BGSimulator.Model
 {
@@ -16,7 +17,7 @@ namespace BGSimulator.Model
         public int Gold { get; set; } = 3;
         public int Health { get; set; } = 40;
         public bool IsDead { get => Health <= 0; }
-        public IMinion[] Hand { get; set; } = new IMinion[MAX_HAND_SIZE];
+        public List<IMinion> Hand { get; set; } = new List<IMinion>();
         public Board Board { get; set; }
         public List<IMinion> ShopOffer { get; set; } = new List<IMinion>();
         public IShop Shop { get; set; }
@@ -31,20 +32,20 @@ namespace BGSimulator.Model
         {
             Board.RoundStart();
             bool done = false;
-            
+
             while (!done)
             {
-                bool canBuy = Gold > 2 && Hand.Any(s => s == null);
+                bool canBuy = Gold > 2 && Hand.Count < MAX_HAND_SIZE;
                 bool canLevel = ShopLevel < MAX_SHOP_LEVEL && Gold >= ShopLevelupPrice;
                 bool canBuyAndLevel = canBuy && ShopLevel < MAX_SHOP_LEVEL && Gold > ShopLevelupPrice + 2;
                 bool canRoll = Gold > 0;
                 bool tableFull = Board.IsFull;
                 bool shopHasDouble = ShopOffer.GroupBy(m => m.Name).Any(g => g.Count() > 1);
-                bool canMakeTriple = Hand.Concat(Board.PlayedMinions).Concat(ShopOffer).Where(m => m != null).GroupBy(m => m.Name).Any(g => g.Count() > 2);
-                bool canSell = Hand.Any(m => m != null) || Board.PlayedMinions.Any();
-                bool canPlay = Hand.Any(m => m != null) && !tableFull;
+                bool canMakeTriple = Hand.Concat(Board.PlayedMinions).Concat(ShopOffer).GroupBy(m => m.Name).Any(g => g.Count() > 2);
+                bool canSell = Hand.Any() || Board.PlayedMinions.Any();
+                bool canPlay = Hand.Any() && !Board.IsFull;
 
-                if (Game.Instance.Round == 2)
+                if (Simulation.Instance.Round == 2)
                 {
                     LevelUp();
                     break;
@@ -91,41 +92,51 @@ namespace BGSimulator.Model
             if (Board.IsEmpty)
                 return;
 
-            var minion = Board.SellRandomMinion();
+            var minion = Board.RemoveRandomMinion();
             Shop.Sell(minion);
 
-            Console.WriteLine(string.Format(@"Round {2}: {0} has sold a minion {1}", Name, minion.Name, Game.Instance.Round));
+            Console.WriteLine(string.Format(@"Round {2}: {0} has sold a minion {1}", Name, minion.Name, Simulation.Instance.Round));
         }
 
         private void PlayHand()
         {
-            if (!Hand.Any(m => m == null))
-                return;
-
-            for (int i = 0; i < Hand.Length; i++)
+            for (int i = 0; i < Hand.Count; i++)
             {
-                if (Hand[i] != null)
+                IMinion target = null;
+                var minion = Hand[i];
+                if(minion.Tags.HasFlag(MinionTag.Targeted))
                 {
-                    Play(i);
+                    var targets = Board.GetValidTargets(minion.ValidTargets);
+                    if (targets.Any())
+                    {
+                        target = ChooseRandomTarget(targets);
+                    }
+                }
+
+                if (Play(minion, target: target))
+                {
+                    Hand.Remove(minion);
                 }
             }
-
         }
 
-        private void Play(int index, int target = -1)
+
+        private IMinion ChooseRandomTarget(List<IMinion> targets)
+        {
+            return targets[RandomNumber(0, targets.Count)];
+        }
+
+        private bool Play(IMinion minion, int index = 0, IMinion target = null)
         {
             if (Board.IsFull)
-                return;
+                return false;
 
-            var minion = Hand[index];
+            Board.Play(minion, index, target);
+            Console.WriteLine(string.Format(@"Round {2}: {0} played {1}", Name, minion.Name, Simulation.Instance.Round));
 
-            if (Board.Play(Hand[index]))
-            {
-                Hand[index] = null;
-
-                Console.WriteLine(string.Format(@"Round {2}: {0} played {1}", Name, minion.Name, Game.Instance.Round));
-            }
+            return true;
         }
+
 
         private void Roll()
         {
@@ -134,7 +145,7 @@ namespace BGSimulator.Model
                 Shop.Mulligen(this);
                 Shop.Roll(this);
 
-                Console.WriteLine(string.Format(@"Round {1}: {0} rolled", Name, Game.Instance.Round));
+                Console.WriteLine(string.Format(@"Round {1}: {0} rolled", Name, Simulation.Instance.Round));
             }
         }
 
@@ -149,32 +160,23 @@ namespace BGSimulator.Model
                 Gold -= ShopLevelupPrice;
                 ShopLevelupPrice = ShopLevel + 5;
 
-                Console.WriteLine(string.Format(@"Round {2}: {0} has leveled up to level {1}", Name, ShopLevel, Game.Instance.Round));
+                Console.WriteLine(string.Format(@"Round {2}: {0} has leveled up to level {1}", Name, ShopLevel, Simulation.Instance.Round));
             }
         }
 
         private void Buy()
         {
-            if (Gold < 3 || !Hand.Any(s => s == null))
+            if (Gold < 3 || Hand.Count == MAX_HAND_SIZE)
                 return;
 
             Gold -= 3;
             var minion = ShopOffer.OrderByDescending(m => m.Health + m.Attack).FirstOrDefault();
 
-            for (int i = 0; i < Hand.Length; i++)
-            {
-                if (Hand[i] == null)
-                {
-                    Hand[i] = minion;
-                    break;
-                }
-            }
-
+            Hand.Add(minion);
             ShopOffer.Remove(minion);
 
-            Console.WriteLine(string.Format(@"Round {2}: {0} has bought a minion {1}", Name, minion.Name, Game.Instance.Round));
+            Console.WriteLine(string.Format(@"Round {2}: {0} has bought a minion {1}", Name, minion.Name, Simulation.Instance.Round));
 
         }
-
     }
 }

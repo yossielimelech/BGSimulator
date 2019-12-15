@@ -29,7 +29,7 @@ namespace BGSimulator
 
         private void StartGame()
         {
-            Game.Instance.Start();
+            Simulation.Instance.Start();
         }
     }
 }
