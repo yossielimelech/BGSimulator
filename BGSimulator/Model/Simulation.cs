@@ -58,6 +58,7 @@ namespace BGSimulator.Model
         private void PlayerDied(Player player)
         {
             LastPlayerDied = player;
+            Console.WriteLine(string.Format(@"{0} has died a horrible death", LastPlayerDied.Name));
         }
 
         public async void Start()
@@ -99,7 +100,6 @@ namespace BGSimulator.Model
             // Start battle phase
             MatchPlayers();
 
-
         }
 
         private void MatchPlayers()
@@ -116,8 +116,11 @@ namespace BGSimulator.Model
             {
                 if (player.CurrentMatch == null)
                 {
-                    player.CurrentMatch = livePlayers.First(p => p.CurrentMatch == null && p != player && p.LastMatch != player);
-                    player.CurrentMatch.CurrentMatch = player;
+                    var currentMatch = livePlayers.FirstOrDefault(p => p.CurrentMatch == null && p != player && p.LastMatch != player);
+                    if (currentMatch == null)
+                        break;
+                    player.CurrentMatch = currentMatch;
+                    currentMatch.CurrentMatch = player;
                 }
             }
         }
