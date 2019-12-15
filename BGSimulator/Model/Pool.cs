@@ -72,11 +72,11 @@ namespace BGSimulator.Model
                 //Tier 2
                 new MinionBase() { MinionType = MinionType.Mech, Name = "Annoy-o-Tron", Attack = 1, Health = 2, Attributes = Attribute.Taunt | Attribute.DivineShield, MinionTier = MinionTier.Ranks[2] },
 
-                new MinionBase() { MinionType = MinionType.Murloc, Name = "Coldlight Seer", Attack = 2, Health = 3, MinionTier = MinionTier.Ranks[2] },
+                new MinionBase() { MinionType = MinionType.Murloc, Name = "Coldlight Seer", Attack = 2, Health = 3, MinionTier = MinionTier.Ranks[2],ValidTargets = MinionType.Murloc, OnPlayed = (tp) => { tp.Board.BuffAllOfType(type:tp.Activator.ValidTargets, health: 2); } },
 
                 new MinionBase() { MinionType = MinionType.Mech, Name = "Harvest Golem", Attack = 2, Health = 3, MinionTier = MinionTier.Ranks[2] },
 
-                new MinionBase() { MinionType = MinionType.Mech, Name = "Kaboom Bot", Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[2] },
+                new MinionBase() { MinionType = MinionType.Mech, Name = "Kaboom Bot", Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[2], OnDeath = (tp) => { var minion = tp.Board.GetRandomMinion(); if(minion != null) { minion.TakeDamage(4); } } },
 
                 new MinionBase() { MinionType = MinionType.Beast, Name = "Kindly Grandmother", Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[2] },
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static BGSimulator.Utils.RandomUtils;
 
 namespace BGSimulator.Model
 {
@@ -10,7 +11,7 @@ namespace BGSimulator.Model
     {
         const int NUM_OF_PLAYERS = 8;
         const int MAX_GOLD = 10;
-
+        Player LastPlayerDied;
         BobsShop shop;
         Pool pool;
         Player[] players;
@@ -26,7 +27,7 @@ namespace BGSimulator.Model
         {
             get
             {
-                if(instance != null)
+                if (instance != null)
                 {
                     return instance;
                 }
@@ -49,7 +50,14 @@ namespace BGSimulator.Model
             for (int i = 0; i < NUM_OF_PLAYERS; i++)
             {
                 players[i] = new Player() { Name = "Player " + (i + 1), Gold = 3, ShopLevel = 1, ShopLevelupPrice = 6, Shop = shop };
+                players[i].OnDeath += PlayerDied;
             }
+        }
+
+        object deathLock = new object();
+        private void PlayerDied(Player player)
+        {
+            LastPlayerDied = player;
         }
 
         public async void Start()
@@ -68,6 +76,9 @@ namespace BGSimulator.Model
             {
                 if (!player.IsDead)
                 {
+                    player.LastMatch = player.CurrentMatch;
+                    player.CurrentMatch = null;
+
                     var task = Task.Run(() =>
                     {
                         shop.Roll(player, free: true);
@@ -81,6 +92,34 @@ namespace BGSimulator.Model
             }
 
             await Task.WhenAll(runningPlayers);
+
+            if (GameOver())
+                return;
+
+            // Start battle phase
+            MatchPlayers();
+
+
+        }
+
+        private void MatchPlayers()
+        {
+            var livePlayers = players.Where(p => !p.IsDead).ToList();
+            if (livePlayers.Count % 2 == 1)
+            {
+                livePlayers.Add(LastPlayerDied);
+            }
+
+            livePlayers.Shuffle();
+
+            foreach (var player in livePlayers)
+            {
+                if (player.CurrentMatch == null)
+                {
+                    player.CurrentMatch = livePlayers.First(p => p.CurrentMatch == null && p != player && p.LastMatch != player);
+                    player.CurrentMatch.CurrentMatch = player;
+                }
+            }
         }
 
         private int GetGoldPerRound()

@@ -96,6 +96,17 @@ namespace BGSimulator.Model
             minion.Attributes |= attributes;
         }
 
+        public void BuffAllOfType(MinionType type, int attack = 0,int health = 0, Attribute attributes = Attribute.None)
+        {
+            foreach (var minion in PlayedMinions)
+            {
+                if((type & minion.MinionType) != 0)
+                {
+                    Buff(minion, attack, health, attributes);
+                }
+            }
+        }
+
         public IMinion GetRandomMinion(MinionType type = MinionType.All)
         {
             var minions = PlayedMinions.Where(m => m != null && (m.MinionType.HasFlag(type))).ToArray();
@@ -109,7 +120,8 @@ namespace BGSimulator.Model
 
         public List<IMinion> GetValidTargets(MinionType validTargets)
         {
-            return PlayedMinions.Where(m => validTargets.HasFlag(m.MinionType)).ToList();
+            return PlayedMinions.Where(m => (validTargets & m.MinionType) != 0).ToList();
         }
+
     }
 }

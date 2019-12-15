@@ -22,6 +22,11 @@ namespace BGSimulator.Model
         public List<IMinion> ShopOffer { get; set; } = new List<IMinion>();
         public IShop Shop { get; set; }
         public IBrain Brain { get; set; }
+        public int Top { get; set; }
+        public Player CurrentMatch { get; set; }
+        public Player LastMatch { get; set; }
+
+        public Action<Player> OnDeath = delegate { };
 
         public Player()
         {
@@ -126,6 +131,11 @@ namespace BGSimulator.Model
                 return;
 
             Health -= damage;
+
+            if(Health <= 0)
+            {
+                OnDeath(this);
+            }
         }
 
         private IMinion ChooseRandomTarget(List<IMinion> targets)

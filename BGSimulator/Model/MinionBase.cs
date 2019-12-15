@@ -29,5 +29,15 @@ namespace BGSimulator.Model
         {
             return this.MemberwiseClone() as IMinion;
         }
+        public void TakeDamage(int damage)
+        {
+            if ((Attributes & Attribute.DivineShield) != 0)
+            {
+                Attributes &= ~Attribute.DivineShield;
+                return;
+            }
+
+            Health -= damage;
+        }
     }
 }
