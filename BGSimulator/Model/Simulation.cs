@@ -78,7 +78,6 @@ namespace BGSimulator.Model
                 if (!player.IsDead)
                 {
                     player.LastMatch = player.CurrentMatch;
-                    player.CurrentMatch = null;
 
                     var task = Task.Run(() =>
                     {
@@ -97,27 +96,25 @@ namespace BGSimulator.Model
             if (GameOver())
                 return;
 
-            // Start battle phase
-            MatchPlayers();
-            await StartBattlesAsync();
+            await StartBattlesAsync(MatchPlayers());
         }
 
-        private async Task StartBattlesAsync()
+        private async Task StartBattlesAsync(List<Player> fighters)
         {
             List<Task> battles = new List<Task>();
-            List<Player> fighters = new List<Player>();
+            List<Player> alreadyFighting = new List<Player>();
 
-            foreach (var player in players)
+            foreach (var player in fighters)
             {
-                if (!fighters.Contains(player))
+                if (!alreadyFighting.Contains(player))
                 {
                     var task = Task.Run(() =>
                     {
-                        Fight(player, player.CurrentMatch);
+                        StartBattle(player, player.CurrentMatch);
                     });
 
-                    fighters.Add(player);
-                    fighters.Add(player.CurrentMatch);
+                    alreadyFighting.Add(player);
+                    alreadyFighting.Add(player.CurrentMatch);
                     battles.Add(task);
                 }
             }
@@ -125,47 +122,49 @@ namespace BGSimulator.Model
             await Task.WhenAll(battles);
         }
 
-        private void Fight(Player playerA, Player playerB)
+        private void StartBattle(Player playerA, Player playerB)
         {
-            var p1board = playerA.Board.Clone();
-            var p2board = playerB.Board.Clone();
+            Battle battle = new Battle() { PlayerA = playerA, PlayerB = playerB, PlayerABoard = playerA.Board.Clone(), PlayerBBoard = playerB.Board.Clone() };
+            battle.Start();
 
-            int p1Attacker = 0;
-            int p2Attacker = 0;
-
-            while (!p1board.IsEmpty && !p2board.IsEmpty)
-            {
-                p1Attacker %= p1board.PlayedMinions.Count;
-                p2Attacker %= p2board.PlayedMinions.Count;
-                var minion1 = p1board.PlayedMinions[p1Attacker];
-                var minion2 = p2board.PlayedMinions[p2Attacker];
-                minion1.DoAttack(minion2);
-                if (minion1.IsDead)
-                    minion1.OnDeath(new TriggerParams() { Activator = minion1, Board = p1board, Index = p1Attacker, Player = playerA });
-            }
         }
 
-        private void MatchPlayers()
+        private List<Player> MatchPlayers()
         {
-            var livePlayers = players.Where(p => !p.IsDead).ToList();
-            if (livePlayers.Count % 2 == 1)
+            var matchedPlayers = players.Where(p => !p.IsDead).ToList();
+            if (matchedPlayers.Count % 2 == 1)
             {
-                livePlayers.Add(LastPlayerDied);
+                matchedPlayers.Add(LastPlayerDied);
             }
 
-            livePlayers.Shuffle();
-
-            foreach (var player in livePlayers)
+            bool matched;
+            do
             {
-                if (player.CurrentMatch == null)
+
+                matched = true;
+                matchedPlayers.Shuffle();
+                foreach (var player in matchedPlayers)
                 {
-                    var currentMatch = livePlayers.FirstOrDefault(p => p.CurrentMatch == null && p != player && p.LastMatch != player);
-                    if (currentMatch == null)
-                        break;
-                    player.CurrentMatch = currentMatch;
-                    currentMatch.CurrentMatch = player;
+                    player.CurrentMatch = null;
                 }
-            }
+
+                foreach (var player in matchedPlayers)
+                {
+                    if (player.CurrentMatch == null)
+                    {
+                        var currentMatch = matchedPlayers.FirstOrDefault(p => p.CurrentMatch == null && p != player && p.LastMatch != player);
+                        if (currentMatch == null)
+                        {
+                            matched = false;
+                            break;
+                        }
+                        player.CurrentMatch = currentMatch;
+                        currentMatch.CurrentMatch = player;
+                    }
+                }
+            } while (!matched);
+
+            return matchedPlayers;
         }
 
         private int GetGoldPerRound()

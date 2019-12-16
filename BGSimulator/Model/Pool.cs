@@ -113,7 +113,7 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Neutral, Name = "Houndmaster", Attack = 4, Health = 3, MinionTier = MinionTier.Ranks[3] },
 
-                new MinionBase() { MinionType = MinionType.Demon, Name = "Imp Gang Boss", Attack = 2,Health =4 , MinionTier =MinionTier.Ranks[1]},
+                new MinionBase() { MinionType = MinionType.Demon, Name = "Imp Gang Boss", Attack = 2,Health =4 , MinionTier =MinionTier.Ranks[3]},
 
                 new MinionBase() { MinionType = MinionType.Beast, Name = "Infested Wolf", Attack = 3, Health = 3, MinionTier = MinionTier.Ranks[3] },
 

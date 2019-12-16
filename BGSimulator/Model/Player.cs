@@ -23,6 +23,7 @@ namespace BGSimulator.Model
         public IShop Shop { get; set; }
         public IBrain Brain { get; set; }
         public int Top { get; set; }
+
         public Player CurrentMatch { get; set; }
         public Player LastMatch { get; set; }
 

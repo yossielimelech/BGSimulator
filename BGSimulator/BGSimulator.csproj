@@ -55,6 +55,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Model\Battle.cs" />
     <Compile Include="Model\BrainBase.cs" />
     <Compile Include="Model\Enums.cs" />
     <Compile Include="Model\IBrain.cs" />

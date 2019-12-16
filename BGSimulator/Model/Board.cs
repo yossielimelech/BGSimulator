@@ -37,6 +37,14 @@ namespace BGSimulator.Model
             OnMinionSummon(summoned, index);
         }
 
+        int LastAttacker { get; set; } = -1;
+        public IMinion GetNextAttacker()
+        {
+            LastAttacker++;
+            LastAttacker %= PlayedMinions.Count;
+            return PlayedMinions[LastAttacker];
+        }
+
         public bool IsFull { get { return PlayedMinions.Count == BOARD_SIZE; } }
 
         public bool IsEmpty { get { return PlayedMinions.Count == 0; } }
@@ -96,11 +104,11 @@ namespace BGSimulator.Model
             minion.Attributes |= attributes;
         }
 
-        public void BuffAllOfType(MinionType type, int attack = 0,int health = 0, Attribute attributes = Attribute.None)
+        public void BuffAllOfType(MinionType type, int attack = 0, int health = 0, Attribute attributes = Attribute.None)
         {
             foreach (var minion in PlayedMinions)
             {
-                if((type & minion.MinionType) != 0)
+                if ((type & minion.MinionType) != 0)
                 {
                     Buff(minion, attack, health, attributes);
                 }
@@ -109,13 +117,24 @@ namespace BGSimulator.Model
 
         public IMinion GetRandomMinion(MinionType type = MinionType.All)
         {
-            var minions = PlayedMinions.Where(m => m != null && (m.MinionType.HasFlag(type))).ToArray();
+            var minions = PlayedMinions.Where(m => (m.MinionType & type) != 0).ToArray();
 
             if (!minions.Any())
                 return null;
 
             var minion = minions[RandomNumber(0, minions.Length)];
             return minion;
+        }
+
+        public IMinion GetRandomDefender()
+        {
+            var taunters = PlayedMinions.Where(m => m.Attributes.HasFlag(Attribute.Taunt)).ToArray();
+            if(taunters.Any())
+            {
+                return taunters[RandomNumber(0, taunters.Length)];
+            }
+
+            return PlayedMinions[RandomNumber(0, PlayedMinions.Count)];
         }
 
         public List<IMinion> GetValidTargets(MinionType validTargets)
