@@ -9,7 +9,7 @@ namespace BGSimulator.Model
 {
     public class Simulation
     {
-        const int NUM_OF_PLAYERS = 8;
+        const int NUM_OF_PLAYERS = 2;
         const int MAX_GOLD = 10;
         Player LastPlayerDied;
         BobsShop shop;
@@ -152,7 +152,7 @@ namespace BGSimulator.Model
                 {
                     if (player.CurrentMatch == null)
                     {
-                        var currentMatch = matchedPlayers.FirstOrDefault(p => p.CurrentMatch == null && p != player && p.LastMatch != player);
+                        var currentMatch = matchedPlayers.FirstOrDefault(p => p.CurrentMatch == null && p != player && (matchedPlayers.Count == 2 || p.LastMatch != player));
                         if (currentMatch == null)
                         {
                             matched = false;

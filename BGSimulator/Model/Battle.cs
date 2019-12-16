@@ -27,6 +27,9 @@ namespace BGSimulator.Model
             {
                 IMinion attackingMinion = attackerBoard.GetNextAttacker();
                 IMinion defendingMinion = defenderBoard.GetRandomDefender();
+
+                Console.WriteLine(string.Format(@"{0} {1} Is Attacking {2} {3}", attackerBoard.Player.Name, attackingMinion.ToString(), defenderBoard.Player.Name, defendingMinion.ToString()));
+
                 attackingMinion.DoAttack(defendingMinion);
                 if (defendingMinion.IsDead)
                     defenderBoard.PlayedMinions.Remove(defendingMinion);
