@@ -37,12 +37,14 @@ namespace BGSimulator.Model
             OnMinionSummon(summoned, index);
         }
 
-        int LastAttacker { get; set; } = -1;
+        int NextAttacker { get; set; }
         public IMinion GetNextAttacker()
         {
-            LastAttacker++;
-            LastAttacker %= PlayedMinions.Count;
-            return PlayedMinions[LastAttacker];
+            if (NextAttacker >= PlayedMinions.Count)
+                NextAttacker = 0;
+            var minion = PlayedMinions[NextAttacker];
+            NextAttacker++;
+            return minion;
         }
 
         public bool IsFull { get { return PlayedMinions.Count == BOARD_SIZE; } }
@@ -60,6 +62,16 @@ namespace BGSimulator.Model
                     minion.OnTurnStart(new TriggerParams() { Activator = minion, Index = i, Board = this, Player = Player });
                 }
             }
+        }
+
+        public void Remove(IMinion defendingMinion)
+        {
+            int i = PlayedMinions.IndexOf(defendingMinion);
+            if (i < NextAttacker)
+            {
+                NextAttacker--;
+            }
+            PlayedMinions.Remove(defendingMinion);
         }
 
         public void Play(IMinion minion, int index = 0, IMinion target = null)
@@ -129,7 +141,7 @@ namespace BGSimulator.Model
         public IMinion GetRandomDefender()
         {
             var taunters = PlayedMinions.Where(m => m.Attributes.HasFlag(Attribute.Taunt)).ToArray();
-            if(taunters.Any())
+            if (taunters.Any())
             {
                 return taunters[RandomNumber(0, taunters.Length)];
             }

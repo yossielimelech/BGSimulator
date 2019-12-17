@@ -20,11 +20,14 @@ namespace BGSimulator.Model
             var attacker = FirstAttacker();
             var defender = attacker.CurrentMatch;
 
-            var attackerBoard = attacker.Board.Clone(); //clone because we want the state at the start of the fight.
+            //clone because we want to save the state at the start of the fight.
+            var attackerBoard = attacker.Board.Clone();
             var defenderBoard = defender.Board.Clone();
 
             while (!attackerBoard.IsEmpty && !defenderBoard.IsEmpty)
             {
+                PrintBoardState(attackerBoard, defenderBoard);
+
                 IMinion attackingMinion = attackerBoard.GetNextAttacker();
                 IMinion defendingMinion = defenderBoard.GetRandomDefender();
 
@@ -32,15 +35,29 @@ namespace BGSimulator.Model
 
                 attackingMinion.DoAttack(defendingMinion);
                 if (defendingMinion.IsDead)
-                    defenderBoard.PlayedMinions.Remove(defendingMinion);
+                {
+                    defenderBoard.Remove(defendingMinion);
+                }
                 if (attackingMinion.IsDead)
-                    attackerBoard.PlayedMinions.Remove(attackingMinion);
+                {
+                    attackerBoard.Remove(attackingMinion);
+                }
 
                 var temp = attackerBoard;
                 attackerBoard = defenderBoard;
                 defenderBoard = temp;
             }
 
+        }
+
+        private static void PrintBoardState(Board attackerBoard, Board defenderBoard)
+        {
+            Console.WriteLine();
+            Console.WriteLine("{0} Board", attackerBoard.Player.Name);
+            Console.WriteLine(string.Format(string.Join((" | "), attackerBoard.PlayedMinions)));
+            Console.WriteLine("{0} Board", defenderBoard.Player.Name);
+            Console.WriteLine(string.Format(string.Join((" | "), defenderBoard.PlayedMinions)));
+            Console.WriteLine();
         }
 
         private Player FirstAttacker()
