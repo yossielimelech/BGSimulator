@@ -103,7 +103,7 @@ namespace BGSimulator.Model
             }
         }
 
-        private void MinionTakeDamage(IMinion minion, int damage)
+        public void MinionTakeDamage(IMinion minion, int damage)
         {
             var tookDamage = minion.TakeDamage(damage);
             if (tookDamage)

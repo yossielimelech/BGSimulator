@@ -45,7 +45,7 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Beast, Name = "Dire Wolf Alpha", Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[1] },
 
-                new MinionBase() { MinionType = MinionType.Mech, Name = "Mecharoo", Attack = 1, Health = 1, Attributes = Attribute.DeathRattle, MinionTier = MinionTier.Ranks[1], OnDeath = (tp) => tp.Board.Summon("Jo-E Bot",tp.Index) },
+                new MinionBase() { MinionType = MinionType.Mech, Name = "Mecharoo", Attack = 1, Health = 1, Attributes = Attribute.DeathRattle, MinionTier = MinionTier.Ranks[1], OnDeath = (tp) => tp.Board.Summon("Jo-E Bot",tp.Index, Direction.InPlace) },
 
                 new MinionBase() { MinionType = MinionType.Mech, Name = "Jo-E Bot", Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[1], PoolMinion = false },
 
@@ -78,17 +78,19 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Mech, Name = "Damaged Golem", Attack = 2, Health = 1, MinionTier = MinionTier.Ranks[1] },
 
-                new MinionBase() { MinionType = MinionType.Mech, Name = "Kaboom Bot", Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[2], OnDeath = (tp) => { var minion = tp.Board.GetRandomMinion(); if(minion != null) { minion.TakeDamage(4); } } },
+                new MinionBase() { MinionType = MinionType.Mech, Name = "Kaboom Bot", Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[2], OnDeath = (tp) => { var minion = tp.Board.GetRandomMinion(); if(minion != null) { tp.Board.MinionTakeDamage(minion, 4); } } },
 
-                new MinionBase() { MinionType = MinionType.Beast, Name = "Kindly Grandmother", Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[2] },
+                new MinionBase() { MinionType = MinionType.Beast, Name = "Kindly Grandmother", Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[2], Attributes = Attribute.DeathRattle, OnDeath = (tp) => {tp.Board.Summon("Big Bad Wolf", tp.Index, Direction.InPlace); } },
 
-                new MinionBase() { MinionType = MinionType.Mech, Name = "Metaltooth Leaper", Attack = 3, Health = 3, MinionTier = MinionTier.Ranks[2] },
+                new MinionBase() { MinionType = MinionType.Beast, Name = "Big Bad Wolf", Attack = 3, Health = 2, MinionTier = MinionTier.Ranks[1] },
 
-                new MinionBase() { MinionType = MinionType.Beast, Name = "Mounted Raptor", Attack = 3, Health = 2, MinionTier = MinionTier.Ranks[2] },
+                new MinionBase() { MinionType = MinionType.Mech, Name = "Metaltooth Leaper", Attack = 3, Health = 3, MinionTier = MinionTier.Ranks[2], OnPlayed = (tp) => { tp.Board.BuffAllOfType(MinionType.Mech,2); } },
 
-                new MinionBase() { MinionType = MinionType.Murloc, Name = "Murloc Warleader", Attack = 3, Health = 3, MinionTier = MinionTier.Ranks[2] },
+                new MinionBase() { MinionType = MinionType.Beast, Name = "Mounted Raptor", Attack = 3, Health = 2, MinionTier = MinionTier.Ranks[2], Attributes = Attribute.DeathRattle, OnDeath = (tp) => { var minion = GetRandomMinionFromRank(1); tp.Board.Summon(minion, tp.Index, Direction.InPlace); } },
 
-                new MinionBase() { MinionType = MinionType.Demon, Name = "Nathrezim Overseer", Attack = 2,Health = 4 , MinionTier = MinionTier.Ranks[2]},
+                new MinionBase() { MinionType = MinionType.Murloc, Name = "Murloc Warleader", Attack = 3, Health = 3, MinionTier = MinionTier.Ranks[2],  },
+
+                new MinionBase() { MinionType = MinionType.Demon, Name = "Nathrezim Overseer", Attack = 2,Health = 4 , MinionTier = MinionTier.Ranks[2], Tags = MinionTag.Targeted, ValidTargets = MinionType.Demon, OnPlayed = (tp) => { if(tp.Target ==null) return; tp.Board.Buff(tp.Target,2,2); } },
 
                 new MinionBase() { MinionType = MinionType.Amalgam, Name = "Nightmare Amalgam", Attack = 3,Health = 4 , MinionTier = MinionTier.Ranks[2]},
 
@@ -98,16 +100,16 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Beast, Name = "Rat Pack", Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[2] },
 
-                new MinionBase() { MinionType = MinionType.Beast, Name = "Scavenging Hyena", Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[2] },
+                new MinionBase() { MinionType = MinionType.Beast, Name = "Scavenging Hyena", Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[2], OnMinionDied = (tp) => { if(tp.Target.MinionType == MinionType.Beast) { tp.Board.Buff(tp.Activator, 2, 1); } } },
 
-                new MinionBase() { MinionType = MinionType.Mech, Name = "Shielded Minibot", Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[2] },
+                new MinionBase() { MinionType = MinionType.Mech, Name = "Shielded Minibot", Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[2], Attributes = Attribute.DivineShield },
 
-                new MinionBase() { MinionType = MinionType.Neutral, Name = "Spawn of N'Zoth", Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[2] },
+                new MinionBase() { MinionType = MinionType.Neutral, Name = "Spawn of N'Zoth", Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[2], Attributes = Attribute.DeathRattle, OnDeath = (tp) => { tp.Board.BuffAllOfType(MinionType.All, 1, 1); } },
 
                 new MinionBase() { MinionType = MinionType.Mech, Name = "Zoobot", Attack = 3, Health = 3, MinionTier = MinionTier.Ranks[2] },
 
                 ////Tier 3
-                new MinionBase() { MinionType = MinionType.Mech, Name = "Cobalt Guardian", Attack = 6, Health = 3, MinionTier = MinionTier.Ranks[3] },
+                new MinionBase() { MinionType = MinionType.Mech, Name = "Cobalt Guardian", Attack = 6, Health = 3, MinionTier = MinionTier.Ranks[3], OnMinionSummon = (tp) => { if(tp.Summon == null || tp.Summon.MinionType != MinionType.Mech) return; tp.Board.Buff(tp.Activator, attributes: Attribute.DivineShield); } },
 
                 new MinionBase() { MinionType = MinionType.Neutral, Name = "Crowd Favorite", Attack = 4, Health = 4, MinionTier = MinionTier.Ranks[3] },
 
@@ -229,6 +231,13 @@ namespace BGSimulator.Model
             }
 
             return rollOffer;
+        }
+
+        private string GetRandomMinionFromRank(int rank)
+        {
+            var rankMinions = allMinions.Where(m => m.MinionTier.Tier == rank).ToList();
+            rankMinions.Shuffle();
+            return rankMinions.First().Name;
         }
 
         private IMinion GetRandomMinion(int maxRank)
