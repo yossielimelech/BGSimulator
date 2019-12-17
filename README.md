@@ -15,4 +15,7 @@ The Combat phase:
 Once your time in the Tavern is over, combat will begin! During the combat phase, you will be pitted against a randomly chosen opponent and your recruited Minions will battle to the death until a victor is decided. Minions will take turns attacking, starting with each player’s left-most Minion. Minion keywords work just as they would in a normal game of Hearthstone. For example, Taunt Minions must be attacked first, Poisonous Minions destroy any Minion they deal damage to, Divine Shield will block the first source of damage, etc.
 
 
+Current development stage: Building the Simulator mechanics.
+
+If you are intrested to contribute and improve the codebase feel free to ask.
 
