@@ -27,21 +27,8 @@ namespace BGSimulator.Model
             while (!attackerBoard.IsEmpty && !defenderBoard.IsEmpty)
             {
                 PrintBoardState(attackerBoard, defenderBoard);
-
-                IMinion attackingMinion = attackerBoard.GetNextAttacker();
-                IMinion defendingMinion = defenderBoard.GetRandomDefender();
-
-                Console.WriteLine(string.Format(@"{0} {1} Is Attacking {2} {3}", attackerBoard.Player.Name, attackingMinion.ToString(), defenderBoard.Player.Name, defendingMinion.ToString()));
-
-                attackingMinion.DoAttack(defendingMinion);
-                if (defendingMinion.IsDead)
-                {
-                    defenderBoard.Remove(defendingMinion);
-                }
-                if (attackingMinion.IsDead)
-                {
-                    attackerBoard.Remove(attackingMinion);
-                }
+                
+                attackerBoard.Attack(defenderBoard);
 
                 var temp = attackerBoard;
                 attackerBoard = defenderBoard;

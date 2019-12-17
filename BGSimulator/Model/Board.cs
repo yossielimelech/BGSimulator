@@ -33,7 +33,7 @@ namespace BGSimulator.Model
             }
 
             var summoned = Pool.Instance.GetFreshCopy(minionName);
-            PlayedMinions.Insert(direction == Direction.Left ? index : index + 1, summoned);
+            PlayedMinions.Insert(index + (int)direction, summoned);
             OnMinionSummon(summoned, index);
         }
 
@@ -48,6 +48,88 @@ namespace BGSimulator.Model
         }
 
         public bool IsFull { get { return PlayedMinions.Count == BOARD_SIZE; } }
+
+        public void Attack(Board defenderBoard)
+        {
+            IMinion attackingMinion = GetNextAttacker();
+
+            if (attackingMinion.Attack == 0)
+            {
+                return;
+            }
+
+            int attacks = attackingMinion.Attributes.HasFlag(Attribute.WindFury) ? 2 : 1;
+
+            for (int i = 0; i < attacks; i++)
+            {
+                IMinion defendingMinion = defenderBoard.GetRandomDefender();
+
+                Console.WriteLine(string.Format(@"{0} {1} Is Attacking {2} {3}", Player.Name, attackingMinion.ToString(), defenderBoard.Player.Name, defendingMinion.ToString()));
+
+                MinionAttack(attacker: attackingMinion, defender: defendingMinion, defenderBoard);
+
+            }
+        }
+        public void MinionAttack(IMinion attacker, IMinion defender, Board defenderBoard)
+        {
+            defenderBoard.MinionTakeDamage(defender, attacker.Attack);
+            MinionTakeDamage(attacker, defender.Attack);
+
+            attacker.OnAttack(new TriggerParams() { Activator = attacker, Target = defender, Board = defenderBoard });
+
+            ClearDeaths();
+            defenderBoard.ClearDeaths();
+        }
+
+        private void ClearDeaths()
+        {
+            Dictionary<IMinion, int> deaths = new Dictionary<IMinion, int>();
+
+            for (int i = 0; i < PlayedMinions.Count; i++)
+            {
+                var minion = PlayedMinions[i];
+                if (minion.IsDead)
+                {
+                    deaths[minion] = i;
+                    int index = PlayedMinions.IndexOf(minion);
+                    PlayedMinions.Remove(minion);
+                }
+            }
+
+            foreach (var kv in deaths)
+            {
+                kv.Key.OnDeath(new TriggerParams() { Activator = kv.Key, Board = this, Index = kv.Value });
+                OnMinionDied(kv.Key);
+            }
+        }
+
+        private void MinionTakeDamage(IMinion minion, int damage)
+        {
+            var tookDamage = minion.TakeDamage(damage);
+            if (tookDamage)
+            {
+                minion.OnDamage(new TriggerParams() { Activator = minion, Board = this, Damage = damage });
+                OnMinionTookDamage(minion);
+            }
+        }
+
+        private void OnMinionDied(IMinion deadMinion)
+        {
+            foreach (var minion in PlayedMinions.Where(m => m != deadMinion))
+            {
+                minion.OnMinionDied(new TriggerParams() { Activator = minion, Target = deadMinion, Board = this });
+            }
+        }
+
+
+
+        private void OnMinionTookDamage(IMinion tookDamage)
+        {
+            foreach (var minion in PlayedMinions.Where(m => m != tookDamage))
+            {
+                minion.OnMinionDamaged(new TriggerParams() { Activator = minion, Board = this, Target = tookDamage });
+            }
+        }
 
         public bool IsEmpty { get { return PlayedMinions.Count == 0; } }
 

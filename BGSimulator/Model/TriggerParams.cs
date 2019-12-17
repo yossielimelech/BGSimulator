@@ -14,5 +14,6 @@ namespace BGSimulator.Model
         public Board Board { get; set; }
         public Player Player { get; set; }
         public int Index { get; set; }
+        public int Damage { get; set; }
     }
 }

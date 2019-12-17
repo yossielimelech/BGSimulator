@@ -74,7 +74,9 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Murloc, Name = "Coldlight Seer", Attack = 2, Health = 3, MinionTier = MinionTier.Ranks[2],ValidTargets = MinionType.Murloc, OnPlayed = (tp) => { tp.Board.BuffAllOfType(type:tp.Activator.ValidTargets, health: 2); } },
 
-                new MinionBase() { MinionType = MinionType.Mech, Name = "Harvest Golem", Attack = 2, Health = 3, MinionTier = MinionTier.Ranks[2] },
+                new MinionBase() { MinionType = MinionType.Mech, Name = "Harvest Golem", Attack = 2, Health = 3, MinionTier = MinionTier.Ranks[2], Attributes = Attribute.DeathRattle, OnDeath = (tp) => {tp.Board.Summon("Damaged Golem", tp.Index, Direction.InPlace); } },
+
+                new MinionBase() { MinionType = MinionType.Mech, Name = "Damaged Golem", Attack = 2, Health = 1, MinionTier = MinionTier.Ranks[1] },
 
                 new MinionBase() { MinionType = MinionType.Mech, Name = "Kaboom Bot", Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[2], OnDeath = (tp) => { var minion = tp.Board.GetRandomMinion(); if(minion != null) { minion.TakeDamage(4); } } },
 
