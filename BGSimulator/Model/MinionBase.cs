@@ -25,6 +25,7 @@ namespace BGSimulator.Model
         public Action<TriggerParams> OnTurnEnd { get; set; } = delegate { };
         public Action<TriggerParams> OnMinionSummon { get; set; } = delegate { };
         public Action<TriggerParams> OnAttack { get; set; } = delegate { };
+        public Action<TriggerParams> OnMinionAttacked { get; set; } = delegate { };
         public Action<TriggerParams> OnMinionDied { get; set; } = delegate { };
         public Action<TriggerParams> OnDamage { get; set; } = delegate { };
         public Action<TriggerParams> OnMinionDamaged { get; set; } = delegate { };

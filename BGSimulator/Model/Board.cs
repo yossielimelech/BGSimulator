@@ -64,10 +64,12 @@ namespace BGSimulator.Model
             {
                 IMinion defendingMinion = defenderBoard.GetRandomDefender();
 
+                if (defendingMinion == null)
+                    break;
+
                 Console.WriteLine(string.Format(@"{0} {1} Is Attacking {2} {3}", Player.Name, attackingMinion.ToString(), defenderBoard.Player.Name, defendingMinion.ToString()));
 
                 MinionAttack(attacker: attackingMinion, defender: defendingMinion, defenderBoard);
-
             }
         }
         public void MinionAttack(IMinion attacker, IMinion defender, Board defenderBoard)
@@ -76,9 +78,18 @@ namespace BGSimulator.Model
             MinionTakeDamage(attacker, defender.Attack);
 
             attacker.OnAttack(new TriggerParams() { Activator = attacker, Target = defender, Board = this, RivalBoard = defenderBoard });
+            OnMinionAttacked(attacker);
 
             ClearDeaths(defenderBoard);
             defenderBoard.ClearDeaths(this);
+        }
+
+        private void OnMinionAttacked(IMinion attacker)
+        {
+            foreach (var minion in PlayedMinions)
+            {
+                minion.OnMinionAttacked(new TriggerParams() { Activator = minion, Board = this, Target = attacker });
+            }
         }
 
         private void ClearDeaths(Board defenderBoard)
@@ -103,6 +114,8 @@ namespace BGSimulator.Model
             }
         }
 
+
+
         public void MinionTakeDamage(IMinion minion, int damage)
         {
             var damageResult = minion.TakeDamage(damage);
@@ -120,7 +133,7 @@ namespace BGSimulator.Model
 
         private void OnMinionLostDivineShield(IMinion lostDivine)
         {
-            foreach (var minion in PlayedMinions.Where(m => m != lostDivine))
+            foreach (var minion in PlayedMinions)
             {
                 minion.OnMinionLostDivineShield(new TriggerParams() { Activator = minion, Board = this, Target = lostDivine });
             }
@@ -155,6 +168,19 @@ namespace BGSimulator.Model
                 for (int j = 0; j < minion.Level; j++)
                 {
                     minion.OnTurnStart(new TriggerParams() { Activator = minion, Index = i, Board = this, Player = Player });
+                }
+            }
+        }
+
+        public void RoundEnd()
+        {
+            for (int i = 0; i < PlayedMinions.Count; i++)
+            {
+                var minion = PlayedMinions[i];
+
+                for (int j = 0; j < minion.Level; j++)
+                {
+                    minion.OnTurnEnd(new TriggerParams() { Activator = minion, Index = i, Board = this, Player = Player });
                 }
             }
         }
@@ -239,9 +265,9 @@ namespace BGSimulator.Model
             }
         }
 
-        public IMinion GetRandomMinion(MinionType type = MinionType.All)
+        public IMinion GetRandomMinion(MinionType type = MinionType.All, List<IMinion> excludes = null)
         {
-            var minions = PlayedMinions.Where(m => (m.MinionType & type) != 0).ToArray();
+            var minions = PlayedMinions.Except(excludes ?? new List<IMinion>()).Where(m => (m.MinionType & type) != 0).ToArray();
 
             if (!minions.Any())
                 return null;
@@ -252,6 +278,9 @@ namespace BGSimulator.Model
 
         public IMinion GetRandomDefender()
         {
+            if (IsEmpty)
+                return null;
+
             var taunters = PlayedMinions.Where(m => m.Attributes.HasFlag(Attribute.Taunt)).ToArray();
             if (taunters.Any())
             {
@@ -289,7 +318,7 @@ namespace BGSimulator.Model
             int right = index - 1;
             int left = index + 1;
 
-            if(right >= 0)
+            if (right >= 0)
             {
                 adjacent.Add(PlayedMinions[right]);
             }
@@ -307,6 +336,34 @@ namespace BGSimulator.Model
             foreach (var adj in adjacents)
             {
                 Buff(adj, attack, health, attributes);
+            }
+        }
+
+        public void BuffRandomUnique(List<MinionType> buffedTypes, int attack, int health)
+        {
+            var uniqueBuffed = new List<IMinion>();
+
+            foreach (var type in buffedTypes)
+            {
+                var buffed = GetRandomMinion(type, uniqueBuffed);
+                if (buffed != null)
+                    uniqueBuffed.Add(buffed);
+            }
+
+            foreach (var buffed in uniqueBuffed)
+            {
+                Buff(buffed, attack, health);
+            }
+        }
+
+        public void BuffAllWithAttribute(Attribute attribute, int attack, int health)
+        {
+            foreach (var minion in PlayedMinions)
+            {
+                if (minion.Attributes.HasFlag(attribute))
+                {
+                    Buff(minion, attack, health);
+                }
             }
         }
     }

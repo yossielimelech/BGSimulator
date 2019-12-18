@@ -11,11 +11,13 @@ namespace BGSimulator.Model
     {
         const int MAX_SHOP_LEVEL = 6;
         const int MAX_HAND_SIZE = 10;
+        const int PLAYER_MAX_HEALTH = 40;
+
         public string Name { get; set; }
         public int ShopLevel { get; set; } = 1;
         public int ShopLevelupPrice { get; set; }
         public int Gold { get; set; } = 3;
-        public int Health { get; set; } = 40;
+        public int Health { get; set; } = PLAYER_MAX_HEALTH;
         public bool IsDead { get => Health <= 0; }
         public List<IMinion> Hand { get; set; } = new List<IMinion>();
         public Board Board { get; set; }
@@ -26,8 +28,10 @@ namespace BGSimulator.Model
 
         public Player CurrentMatch { get; set; }
         public Player LastMatch { get; set; }
+        public int MissingHealth { get { return PLAYER_MAX_HEALTH - Health; } }
 
         public Action<Player> OnDeath = delegate { };
+
 
         public Player()
         {
@@ -89,6 +93,8 @@ namespace BGSimulator.Model
 
                 done = !canBuy && !canLevel;
             }
+
+            Board.RoundEnd();
 
             Shop.Mulligen(this);
         }
