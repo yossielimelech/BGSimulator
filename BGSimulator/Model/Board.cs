@@ -427,5 +427,10 @@ namespace BGSimulator.Model
 
             BuffAllOfType(MinionType.Murloc, attack, health, attr, deathRattle);
         }
+
+        public bool Controls(MinionType murloc, IMinion exclude = null)
+        {
+            return PlayedMinions.Any(m => (m.MinionType & MinionType.Murloc) != 0 && (exclude == null || m != exclude));
+        }
     }
 }
