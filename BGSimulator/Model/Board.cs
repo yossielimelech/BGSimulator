@@ -95,6 +95,7 @@ namespace BGSimulator.Model
             }
         }
 
+        public List<IMinion> Graveyard { get; set; }
         private void ClearDeaths(Board defenderBoard)
         {
             Dictionary<IMinion, int> deaths = new Dictionary<IMinion, int>();
@@ -107,6 +108,7 @@ namespace BGSimulator.Model
                     deaths[minion] = i;
                     int index = PlayedMinions.IndexOf(minion);
                     PlayedMinions.Remove(minion);
+                    Graveyard.Add(minion);
                 }
             }
 
@@ -250,20 +252,25 @@ namespace BGSimulator.Model
             Buff(buffee, attack, health, attributes);
         }
 
-        public void Buff(IMinion minion, int attack = 0, int health = 0, Attribute attributes = Attribute.None)
+        public void Buff(IMinion minion, int attack = 0, int health = 0, Attribute attributes = Attribute.None, Action<TriggerParams> deathRattle = null)
         {
             minion.Attack += attack;
             minion.Health += health;
             minion.Attributes |= attributes;
+
+            if(deathRattle != null)
+            {
+                minion.OnDeath += deathRattle;
+            }
         }
 
-        public void BuffAllOfType(MinionType type, int attack = 0, int health = 0, Attribute attributes = Attribute.None)
+        public void BuffAllOfType(MinionType type, int attack = 0, int health = 0, Attribute attributes = Attribute.None, Action<TriggerParams> deathRattle = null)
         {
             foreach (var minion in PlayedMinions)
             {
                 if ((type & minion.MinionType) != 0)
                 {
-                    Buff(minion, attack, health, attributes);
+                    Buff(minion, attack, health, attributes, deathRattle);
                 }
             }
         }
@@ -300,9 +307,10 @@ namespace BGSimulator.Model
 
         public Board Clone()
         {
-            var borad = this.MemberwiseClone() as Board;
-            borad.PlayedMinions = this.PlayedMinions.Select(m => m.Clone()).ToList();
-            return borad;
+            var board = this.MemberwiseClone() as Board;
+            board.PlayedMinions = this.PlayedMinions.Select(m => m.Clone()).ToList();
+            board.Graveyard = new List<IMinion>();
+            return board;
         }
 
         public void CleaveAttack(IMinion activator, IMinion target)
@@ -368,6 +376,57 @@ namespace BGSimulator.Model
                     Buff(minion, attack, health);
                 }
             }
+        }
+
+        public void SummonFromGraveyard(MinionType type, int index, Direction direction = Direction.InPlace, int amount = 1)
+        {
+            var revive = Graveyard.Where(m => m.MinionType == type).Take(amount);
+            foreach (var minion in revive)
+            {
+                Summon(minion.Name, index, direction);
+            }
+        }
+
+        public void BuffAdapt(Adapt adapt, int index)
+        {
+            int attack = 0;
+            int health = 0;
+            Attribute attr = Attribute.None;
+
+            Action<TriggerParams> deathRattle = (tp) => { tp.Board.Summon("Plant", tp.Index, Direction.InPlace, 2); };
+
+
+            switch (adapt)
+            {
+                case Adapt.DeathRattle:
+                    attr |= Attribute.DeathRattle;
+                    
+                    break;
+                case Adapt.DivineShield:
+                    attr |= Attribute.DivineShield;
+                    break;
+                case Adapt.OneOne:
+                    attack++;
+                    health++;
+                    break;
+                case Adapt.Poison:
+                    attr |= Attribute.Poison;
+                    break;
+                case Adapt.Windfury:
+                    attr |= Attribute.WindFury;
+                    break;
+                case Adapt.Taunt:
+                    attr |= Attribute.Taunt;
+                    break;
+                case Adapt.ThreeAttack:
+                    attack += 3;
+                    break;
+                case Adapt.ThreeHealth:
+                    attack += 3;
+                    break;
+            }
+
+            BuffAllOfType(MinionType.Murloc, attack, health, attr, deathRattle);
         }
     }
 }

@@ -218,11 +218,13 @@ namespace BGSimulator.Model
                 ////Tier 6
                 new MinionBase() { MinionType = MinionType.Mech, Name = "Foe Reaper 4000", Attack = 6, Health = 9, MinionTier = MinionTier.Ranks[6], OnAttack = (tp) => { tp.RivalBoard.CleaveAttack(tp.Activator, tp.Target); } },
 
-                new MinionBase() { MinionType = MinionType.Beast, Name = "Gentle Megasaur", Attack = 5, Health = 4, MinionTier = MinionTier.Ranks[6] },
+                new MinionBase() { MinionType = MinionType.Beast, Name = "Gentle Megasaur", Attack = 5, Health = 4, MinionTier = MinionTier.Ranks[6], Tags = MinionTag.BattleCry, OnPlayed = (tp) => { var adapt = tp.Player.ChooseAdapt(); tp.Board.BuffAdapt(adapt, tp.Index); } },
+
+                new MinionBase() { MinionType = MinionType.Neutral, Name = "Plant", Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[1], },
 
                 new MinionBase() { MinionType = MinionType.Beast, Name = "Ghastcoiler", Attack = 7, Health = 7, MinionTier = MinionTier.Ranks[6] },
 
-                new MinionBase() { MinionType = MinionType.Neutral, Name = "Kangor's Apprentice", Attack = 3, Health = 6, MinionTier = MinionTier.Ranks[6] },
+                new MinionBase() { MinionType = MinionType.Neutral, Name = "Kangor's Apprentice", Attack = 3, Health = 6, MinionTier = MinionTier.Ranks[6], Attributes = Attribute.DeathRattle, OnDeath = (tp) => { tp.Board.SummonFromGraveyard(MinionType.Mech, tp.Index, amount: 2); } },
 
                 new MinionBase() { MinionType = MinionType.Beast, Name = "Maexxna", Attack = 2, Health = 8, MinionTier = MinionTier.Ranks[6], Attributes = Attribute.Poison },
 

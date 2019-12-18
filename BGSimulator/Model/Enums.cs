@@ -41,6 +41,19 @@ namespace BGSimulator.Model
         Magnetic = 8,
     }
 
+    [Flags]
+    public enum Adapt
+    {
+        OneOne = 1,
+        ThreeHealth = 2,
+        ThreeAttack = 4,
+        DivineShield = 8,
+        Taunt = 16,
+        Poison = 32,
+        DeathRattle = 64,
+        Windfury = 128,
+    }
+
     public enum Direction
     {
         Left = -1,

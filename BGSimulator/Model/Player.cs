@@ -9,6 +9,7 @@ namespace BGSimulator.Model
 {
     public class Player
     {
+
         const int MAX_SHOP_LEVEL = 6;
         const int MAX_HAND_SIZE = 10;
         const int PLAYER_MAX_HEALTH = 40;
@@ -202,6 +203,19 @@ namespace BGSimulator.Model
 
             Console.WriteLine(string.Format(@"Round {2}: {0} has bought a minion {1}", Name, minion.Name, Simulation.Instance.Round));
 
+        }
+
+        public Adapt ChooseAdapt()
+        {
+            var adaptOptions = GetAdaptOptions();
+            return adaptOptions.First();
+        }
+
+        private IEnumerable<Adapt> GetAdaptOptions()
+        {
+            var adapts = Enum.GetValues(typeof(Adapt)).Cast<Adapt>().ToList();
+            adapts.Shuffle();
+            return adapts.Take(3);
         }
     }
 }
