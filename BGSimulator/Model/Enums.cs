@@ -37,6 +37,8 @@ namespace BGSimulator.Model
         None = 0,
         Targeted = 1,
         PlayerImmunity = 2,
+        BattleCry = 4,
+        Magnetic = 8,
     }
 
     public enum Direction

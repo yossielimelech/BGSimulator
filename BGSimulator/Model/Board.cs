@@ -75,13 +75,13 @@ namespace BGSimulator.Model
             defenderBoard.MinionTakeDamage(defender, attacker.Attack);
             MinionTakeDamage(attacker, defender.Attack);
 
-            attacker.OnAttack(new TriggerParams() { Activator = attacker, Target = defender, Board = defenderBoard });
+            attacker.OnAttack(new TriggerParams() { Activator = attacker, Target = defender, Board = this, RivalBoard = defenderBoard });
 
-            ClearDeaths();
-            defenderBoard.ClearDeaths();
+            ClearDeaths(defenderBoard);
+            defenderBoard.ClearDeaths(this);
         }
 
-        private void ClearDeaths()
+        private void ClearDeaths(Board defenderBoard)
         {
             Dictionary<IMinion, int> deaths = new Dictionary<IMinion, int>();
 
@@ -98,18 +98,31 @@ namespace BGSimulator.Model
 
             foreach (var kv in deaths)
             {
-                kv.Key.OnDeath(new TriggerParams() { Activator = kv.Key, Board = this, Index = kv.Value });
+                kv.Key.OnDeath(new TriggerParams() { Activator = kv.Key, Board = this, RivalBoard = defenderBoard, Index = kv.Value });
                 OnMinionDied(kv.Key);
             }
         }
 
         public void MinionTakeDamage(IMinion minion, int damage)
         {
-            var tookDamage = minion.TakeDamage(damage);
-            if (tookDamage)
+            var damageResult = minion.TakeDamage(damage);
+            if (damageResult.tookDamage)
             {
                 minion.OnDamage(new TriggerParams() { Activator = minion, Board = this, Damage = damage });
                 OnMinionTookDamage(minion);
+            }
+
+            if (damageResult.lostDivine)
+            {
+                OnMinionLostDivineShield(minion);
+            }
+        }
+
+        private void OnMinionLostDivineShield(IMinion lostDivine)
+        {
+            foreach (var minion in PlayedMinions.Where(m => m != lostDivine))
+            {
+                minion.OnMinionLostDivineShield(new TriggerParams() { Activator = minion, Board = this, Target = lostDivine });
             }
         }
 
@@ -144,6 +157,23 @@ namespace BGSimulator.Model
                     minion.OnTurnStart(new TriggerParams() { Activator = minion, Index = i, Board = this, Player = Player });
                 }
             }
+        }
+
+        public void TryMagnet(IMinion magnetic, int index)
+        {
+            if (index++ > PlayedMinions.Count)
+                return;
+
+            var minion = PlayedMinions[index];
+            if ((magnetic.ValidTargets & minion.MinionType) != 0)
+            {
+                minion.Attack += magnetic.Attack;
+                minion.Health += magnetic.Health;
+                minion.Attributes |= magnetic.Attributes;
+                PlayedMinions.Remove(magnetic);
+                Pool.Instance.Return(magnetic);
+            }
+
         }
 
         public void Remove(IMinion defendingMinion)
@@ -241,6 +271,43 @@ namespace BGSimulator.Model
             var borad = this.MemberwiseClone() as Board;
             borad.PlayedMinions = this.PlayedMinions.Select(m => m.Clone()).ToList();
             return borad;
+        }
+
+        public void CleaveAttack(IMinion activator, IMinion target)
+        {
+            var adjacent = GetAdjacentMinions(target);
+            foreach (var minion in adjacent)
+            {
+                MinionTakeDamage(minion, activator.Attack);
+            }
+        }
+
+        private List<IMinion> GetAdjacentMinions(IMinion minion)
+        {
+            List<IMinion> adjacent = new List<IMinion>();
+            int index = PlayedMinions.IndexOf(minion);
+            int right = index - 1;
+            int left = index + 1;
+
+            if(right >= 0)
+            {
+                adjacent.Add(PlayedMinions[right]);
+            }
+            if (left < PlayedMinions.Count)
+            {
+                adjacent.Add(PlayedMinions[left]);
+            }
+
+            return adjacent;
+        }
+
+        public void BuffAdjacent(IMinion minion, int attack, int health, Attribute attributes)
+        {
+            var adjacents = GetAdjacentMinions(minion);
+            foreach (var adj in adjacents)
+            {
+                Buff(adj, attack, health, attributes);
+            }
         }
     }
 }

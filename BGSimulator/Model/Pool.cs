@@ -78,7 +78,7 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Mech, Name = "Damaged Golem", Attack = 2, Health = 1, MinionTier = MinionTier.Ranks[1] },
 
-                new MinionBase() { MinionType = MinionType.Mech, Name = "Kaboom Bot", Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[2], OnDeath = (tp) => { var minion = tp.Board.GetRandomMinion(); if(minion != null) { tp.Board.MinionTakeDamage(minion, 4); } } },
+                new MinionBase() { MinionType = MinionType.Mech, Name = "Kaboom Bot", Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[2], OnDeath = (tp) => { var minion = tp.RivalBoard.GetRandomMinion(); if(minion != null) { tp.RivalBoard.MinionTakeDamage(minion, 4); } } },
 
                 new MinionBase() { MinionType = MinionType.Beast, Name = "Kindly Grandmother", Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[2], Attributes = Attribute.DeathRattle, OnDeath = (tp) => {tp.Board.Summon("Big Bad Wolf", tp.Index, Direction.InPlace); } },
 
@@ -142,13 +142,13 @@ namespace BGSimulator.Model
                 new MinionBase() { MinionType = MinionType.Neutral, Name = "Tortollan Shellraiser", Attack = 2, Health = 6, MinionTier = MinionTier.Ranks[3] },
 
                 ////Tier 4
-                new MinionBase() { MinionType = MinionType.Mech, Name = "Annoy-o-Module", Attack = 2, Health = 4, MinionTier = MinionTier.Ranks[4] },
+                new MinionBase() { MinionType = MinionType.Mech, Name = "Annoy-o-Module", Attack = 2, Health = 4, MinionTier = MinionTier.Ranks[4], Attributes = Attribute.Taunt | Attribute.DivineShield, Tags = MinionTag.Magnetic, ValidTargets = MinionType.Mech, OnPlayed = (tp) => { tp.Board.TryMagnet(tp.Activator, tp.Index); } },
 
-                new MinionBase() { MinionType = MinionType.Neutral, Name = "Bolvar, Fireblood", Attack = 1, Health = 7, MinionTier = MinionTier.Ranks[4] },
+                new MinionBase() { MinionType = MinionType.Neutral, Name = "Bolvar, Fireblood", Attack = 1, Health = 7, MinionTier = MinionTier.Ranks[4], Attributes = Attribute.DivineShield, OnMinionLostDivineShield = (tp) => { tp.Board.Buff(tp.Activator, 2); } },
 
-                new MinionBase() { MinionType = MinionType.Beast, Name = "Cave Hydra", Attack = 2, Health = 4, MinionTier = MinionTier.Ranks[4] },
+                new MinionBase() { MinionType = MinionType.Beast, Name = "Cave Hydra", Attack = 2, Health = 4, MinionTier = MinionTier.Ranks[4], OnAttack = (tp) => { tp.RivalBoard.CleaveAttack(tp.Activator, tp.Target); } },
 
-                new MinionBase() { MinionType = MinionType.Neutral, Name = "Defender of Argus", Attack = 2, Health = 3, MinionTier = MinionTier.Ranks[4] },
+                new MinionBase() { MinionType = MinionType.Neutral, Name = "Defender of Argus", Attack = 2, Health = 3, MinionTier = MinionTier.Ranks[4], Tags = MinionTag.BattleCry, ValidTargets = MinionType.All, OnPlayed = (tp) => { tp.Board.BuffAdjacent(tp.Activator, 1, 1, Attribute.Taunt); } },
 
                 new MinionBase() { MinionType = MinionType.Neutral, Name = "Festeroot Hulk", Attack = 2, Health = 7, MinionTier = MinionTier.Ranks[4] },
 
