@@ -115,7 +115,7 @@ namespace BGSimulator.Model
             foreach (var kv in deaths)
             {
                 kv.Key.OnDeath(new TriggerParams() { Activator = kv.Key, Board = this, RivalBoard = defenderBoard, Index = kv.Value });
-                OnMinionDied(kv.Key);
+                OnMinionDied(kv.Key, defenderBoard);
             }
         }
 
@@ -144,11 +144,11 @@ namespace BGSimulator.Model
             }
         }
 
-        private void OnMinionDied(IMinion deadMinion)
+        private void OnMinionDied(IMinion deadMinion, Board defenderBoard)
         {
             foreach (var minion in PlayedMinions.Where(m => m != deadMinion))
             {
-                minion.OnMinionDied(new TriggerParams() { Activator = minion, Target = deadMinion, Board = this });
+                minion.OnMinionDied(new TriggerParams() { Activator = minion, Target = deadMinion, Board = this, RivalBoard = defenderBoard });
             }
         }
 
@@ -400,7 +400,6 @@ namespace BGSimulator.Model
             {
                 case Adapt.DeathRattle:
                     attr |= Attribute.DeathRattle;
-                    
                     break;
                 case Adapt.DivineShield:
                     attr |= Attribute.DivineShield;
