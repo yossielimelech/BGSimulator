@@ -20,14 +20,16 @@ namespace BGSimulator.Model
         Action<TriggerParams> OnTurnEnd { get; set; }
         Action<TriggerParams> OnTurnStart { get; set; }
         Action<TriggerParams> OnAttack { get; set; }
+        Action<TriggerParams> OnMinionAttacked { get; set; }
         Action<TriggerParams> OnMinionDied { get; set; }
         Action<TriggerParams> OnDamage { get; set; }
         Action<TriggerParams> OnMinionDamaged { get; set; }
+        Action<TriggerParams> OnMinionLostDivineShield { get; set; }
         bool PoolMinion { get; set; }
         bool IsDead { get; }
 
         IMinion Clone(bool fullClone = false);
-        bool TakeDamage(int damage);
+        (bool tookDamage, bool lostDivine) TakeDamage(int damage);
         void DoAttack(IMinion minion);
     }
 }

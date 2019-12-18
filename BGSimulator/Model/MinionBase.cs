@@ -25,9 +25,11 @@ namespace BGSimulator.Model
         public Action<TriggerParams> OnTurnEnd { get; set; } = delegate { };
         public Action<TriggerParams> OnMinionSummon { get; set; } = delegate { };
         public Action<TriggerParams> OnAttack { get; set; } = delegate { };
+        public Action<TriggerParams> OnMinionAttacked { get; set; } = delegate { };
         public Action<TriggerParams> OnMinionDied { get; set; } = delegate { };
         public Action<TriggerParams> OnDamage { get; set; } = delegate { };
         public Action<TriggerParams> OnMinionDamaged { get; set; } = delegate { };
+        public Action<TriggerParams> OnMinionLostDivineShield { get; set; } = delegate { };
 
         public bool IsDead { get { return Health <= 0; } }
 
@@ -43,20 +45,20 @@ namespace BGSimulator.Model
             TakeDamage(minion.Attack);
         }
 
-        public bool TakeDamage(int damage)
+        public (bool tookDamage, bool lostDivine) TakeDamage(int damage)
         {
-            if ((Attributes & Attribute.DivineShield) != 0)
+            if (damage > 0 && (Attributes & Attribute.DivineShield) != 0)
             {
                 Attributes &= ~Attribute.DivineShield;
-                return false;
+                return (false, true);
             }
 
             Health -= damage;
 
             if (damage > 0)
-                return true;
+                return (true, false);
 
-            return false;
+            return (false, false);
         }
 
         public override string ToString()

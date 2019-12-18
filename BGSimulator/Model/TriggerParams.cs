@@ -12,6 +12,7 @@ namespace BGSimulator.Model
         public IMinion Target { get; set; }
         public IMinion Summon { get; set; }
         public Board Board { get; set; }
+        public Board RivalBoard { get; set; }
         public Player Player { get; set; }
         public int Index { get; set; }
         public int Damage { get; set; }
