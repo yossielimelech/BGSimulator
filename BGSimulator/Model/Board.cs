@@ -27,14 +27,17 @@ namespace BGSimulator.Model
 
         public void Summon(string minionName, int index, Direction direction = Direction.Right, int amount = 1)
         {
-            if (IsFull)
+            for (int i = 0; i < amount; i++)
             {
-                return;
-            }
+                if (IsFull)
+                {
+                    return;
+                }
 
-            var summoned = Pool.Instance.GetFreshCopy(minionName);
-            PlayedMinions.Insert(index + (int)direction, summoned);
-            OnMinionSummon(summoned, index);
+                var summoned = Pool.Instance.GetFreshCopy(minionName);
+                PlayedMinions.Insert(index + (int)direction, summoned);
+                OnMinionSummon(summoned, index);
+            }
         }
 
         int NextAttacker { get; set; }
