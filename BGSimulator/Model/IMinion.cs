@@ -25,6 +25,7 @@ namespace BGSimulator.Model
         Action<TriggerParams> OnDamage { get; set; }
         Action<TriggerParams> OnMinionDamaged { get; set; }
         Action<TriggerParams> OnMinionLostDivineShield { get; set; }
+        Action<TriggerParams> OnBoardChanged { get; set; }
         bool PoolMinion { get; set; }
         bool IsDead { get; }
 

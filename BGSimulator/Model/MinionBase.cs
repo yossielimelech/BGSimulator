@@ -30,6 +30,7 @@ namespace BGSimulator.Model
         public Action<TriggerParams> OnDamage { get; set; } = delegate { };
         public Action<TriggerParams> OnMinionDamaged { get; set; } = delegate { };
         public Action<TriggerParams> OnMinionLostDivineShield { get; set; } = delegate { };
+        public Action<TriggerParams> OnBoardChanged { get; set; } = delegate { };
 
         public bool IsDead { get { return Health <= 0; } }
 
