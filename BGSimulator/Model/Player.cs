@@ -218,16 +218,18 @@ namespace BGSimulator.Model
             return adapts.Take(3);
         }
 
-        public void ChooseMinion(List<IMinion> minions)
+        public void ChooseDiscover(List<IMinion> minions)
         {
             if (Hand.Count == MAX_HAND_SIZE)
+            {
+                Pool.Instance.Return(minions);
                 return;
+            }
 
             var minion = ChooseRandomMinion(minions);
-
-            var copy = Pool.Instance.GetFreshCopy(minion.Name); //if this minions are pool minions this needs a fix
-            copy.PoolMinion = false;
-            Hand.Add(copy);
+            minions.Remove(minion);
+            Pool.Instance.Return(minions);
+            Hand.Add(minion);
         }
 
         private IMinion ChooseRandomMinion(List<IMinion> minions)

@@ -54,6 +54,15 @@ namespace BGSimulator.Model
         Windfury = 128,
     }
 
+    public enum Rarity
+    {
+        Classic,
+        Common,
+        Rare,
+        Epic,
+        Legendary
+    }
+
     public enum Direction
     {
         Left = -1,
