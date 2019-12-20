@@ -15,9 +15,9 @@ namespace BGSimulator.Model
         public Attribute Attributes { get; set; } = Attribute.None;
         public MinionTag Tags { get; set; } = MinionTag.None;
         public MinionType ValidTargets { get; set; } = MinionType.All;
-
         public Rarity Rarity { get; set; } = Rarity.Common;
         public int Level { get; set; } = 1;
+        public int Cost { get; set; } = 1;
         public int Health { get; set; }
         public int Attack { get; set; }
         public bool PoolMinion { get; set; } = true;

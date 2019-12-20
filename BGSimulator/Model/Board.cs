@@ -432,5 +432,13 @@ namespace BGSimulator.Model
         {
             return PlayedMinions.Any(m => (m.MinionType & MinionType.Murloc) != 0 && (exclude == null || m != exclude));
         }
+
+        public void Summon(List<IMinion> minions, int index, Direction direction)
+        {
+            foreach (var minion in minions)
+            {
+                Summon(minion.Name, index, direction);
+            }
+        }
     }
 }

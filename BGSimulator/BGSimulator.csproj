@@ -62,6 +62,7 @@
     <Compile Include="Model\IMinion.cs" />
     <Compile Include="Model\MinionAmalgam.cs" />
     <Compile Include="Model\TriggerParams.cs" />
+    <Compile Include="Utils\LinqExtensions.cs" />
     <Compile Include="Utils\RandomUtils.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
