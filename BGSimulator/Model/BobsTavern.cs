@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BGSimulator.Model
 {
-    public class BobsShop : IShop
+    public class BobsTavern : ITavern
     {
         public int Round { get; set; } = 1;
         public Pool Pool { get; set; }

@@ -23,7 +23,7 @@ namespace BGSimulator.Model
         public List<IMinion> Hand { get; set; } = new List<IMinion>();
         public Board Board { get; set; }
         public List<IMinion> ShopOffer { get; set; } = new List<IMinion>();
-        public IShop Shop { get; set; }
+        public ITavern Shop { get; set; }
         public IBrain Brain { get; set; }
         public int Top { get; set; }
 

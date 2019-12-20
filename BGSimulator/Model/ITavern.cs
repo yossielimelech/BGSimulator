@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BGSimulator.Model
 {
-    public interface IShop
+    public interface ITavern
     {
         void Roll(Player player, bool free = false);
         void Mulligen(Player player);

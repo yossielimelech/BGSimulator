@@ -12,7 +12,7 @@ namespace BGSimulator.Model
         const int NUM_OF_PLAYERS = 2;
         const int MAX_GOLD = 10;
         Player LastPlayerDied;
-        BobsShop shop;
+        BobsTavern shop;
         Pool pool;
         Player[] players;
 
@@ -40,7 +40,7 @@ namespace BGSimulator.Model
         private void Initialize()
         {
             pool = Pool.Instance;
-            shop = new BobsShop() { Pool = pool };
+            shop = new BobsTavern() { Pool = pool };
             CreatePlayers();
         }
 

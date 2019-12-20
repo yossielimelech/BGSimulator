@@ -79,9 +79,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Model\Board.cs" />
-    <Compile Include="Model\BobsShop.cs" />
+    <Compile Include="Model\BobsTavern.cs" />
     <Compile Include="Model\Simulation.cs" />
-    <Compile Include="Model\IShop.cs" />
+    <Compile Include="Model\ITavern.cs" />
     <Compile Include="Model\MinionBase.cs" />
     <Compile Include="Model\MinionTier.cs" />
     <Compile Include="Model\Player.cs" />
