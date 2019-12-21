@@ -9,7 +9,7 @@ namespace BGSimulator.Model
 {
     public class Simulation
     {
-        const int NUM_OF_PLAYERS = 2;
+        const int NUM_OF_PLAYERS = 8;
         const int MAX_GOLD = 10;
         Player LastPlayerDied;
         BobsTavern shop;

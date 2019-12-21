@@ -26,7 +26,7 @@ namespace BGSimulator.Model
         public ITavern Shop { get; set; }
         public IBrain Brain { get; set; }
         public int Top { get; set; }
-
+        public List<string> PlayedMinions { get; private set; } = new List<string>();
         public Player CurrentMatch { get; set; }
         public Player LastMatch { get; set; }
         public int MissingHealth { get { return PLAYER_MAX_HEALTH - Health; } }
@@ -157,6 +157,7 @@ namespace BGSimulator.Model
             if (Board.IsFull)
                 return false;
 
+            PlayedMinions.Add(minion.Name);
             Board.Play(minion, index, target);
             Console.WriteLine(string.Format(@"Round {2}: {0} played {1}", Name, minion.Name, Simulation.Instance.Round));
 

@@ -86,7 +86,7 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Mech, Name = "Metaltooth Leaper", Cost = 3, Attack = 3, Health = 3, MinionTier = MinionTier.Ranks[2], Tags = MinionTag.BattleCry, OnPlayed = (tp) => { tp.Board.BuffAllOfType(MinionType.Mech, 2); } },
 
-                new MinionBase() { MinionType = MinionType.Beast, Name = "Mounted Raptor", Cost = 3, Attack = 3, Health = 2, MinionTier = MinionTier.Ranks[2], Attributes = Attribute.DeathRattle, OnDeath = (tp) => { var minion = GetRandomMinionFromRank(1); tp.Board.Summon(minion, tp.Index, Direction.InPlace); } },
+                new MinionBase() { MinionType = MinionType.Beast, Name = "Mounted Raptor", Cost = 3, Attack = 3, Health = 2, MinionTier = MinionTier.Ranks[2], Attributes = Attribute.DeathRattle, OnDeath = (tp) => { tp.Board.Summon(GetRandomMinions(m => m.Cost == 1 && m.PoolMinion), tp.Index, Direction.InPlace); } },
 
                 new MinionBase() { MinionType = MinionType.Murloc, Name = "Murloc Warleader", Cost = 3, Attack = 3, Health = 3, MinionTier = MinionTier.Ranks[2],  }, // **** 
 
@@ -96,7 +96,7 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Murloc, Name = "Old Murk-Eye", Cost = 4, Rarity = Rarity.Legendary, Attack = 2, Health = 4, MinionTier = MinionTier.Ranks[2] },  //***
 
-                new MinionBase() { MinionType = MinionType.Mech, Name = "Pogo-Hopper", Cost = 1, Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[2] }, //***
+                new MinionBase() { MinionType = MinionType.Mech, Name = "Pogo-Hopper", Cost = 1, Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[2], OnPlayed = (tp) => { var count = tp.Player.PlayedMinions.Where(m => m == tp.Activator.Name).Count() - 1; tp.Board.Buff(tp.Activator, count * 2,count * 2); } },
 
                 new MinionBase() { MinionType = MinionType.Beast, Name = "Rat Pack", Cost = 3, Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[2], Attributes = Attribute.DeathRattle, OnDeath = (tp) => { tp.Board.Summon("Rat", tp.Index, Direction.InPlace, tp.Activator.Attack); } },
 
@@ -178,7 +178,7 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Mech, Name = "Guard Bot", Attack = 2, Health = 6, MinionTier = MinionTier.Ranks[1], Attributes = Attribute.Taunt, PoolMinion = false },
 
-                new MinionBase() { MinionType = MinionType.Demon, Name = "Siegebreaker", Cost = 7, Attack = 5,Health =8 , MinionTier = MinionTier.Ranks[4], Attributes = Attribute.Taunt, }, //***                
+                new MinionBase() { MinionType = MinionType.Demon, Name = "Siegebreaker", Cost = 7, Attack = 5,Health = 8 , MinionTier = MinionTier.Ranks[4], Attributes = Attribute.Taunt, }, //***                
 
                 new MinionBase() { MinionType = MinionType.Neutral, Name = "The Boogeymonster", Cost = 8, Rarity = Rarity.Legendary, Attack = 6, Health = 7, MinionTier = MinionTier.Ranks[4] }, // ***
 
@@ -277,13 +277,6 @@ namespace BGSimulator.Model
             return minions;
         }
 
-        private string GetRandomMinionFromRank(int rank)
-        {
-            var rankMinions = allMinions.Where(m => m.MinionTier.Tier == rank && m.PoolMinion).ToList();
-            rankMinions.Shuffle();
-            return rankMinions.First().Name;
-        }
-
         private List<IMinion> GetRandomMinions(Func<IMinion, bool> predicate, int amount = 1)
         {
             var minions = allMinions.Where(m => predicate(m)).ToList();
@@ -337,19 +330,22 @@ namespace BGSimulator.Model
 
         private int GetRandomRank(int maxRank)
         {
-            int sum = 0;
-            int rank = 0;
-            var total = Enumerable.Range(1, maxRank).Sum();
-            int rand = RandomNumber(1, total);
+            //Base logic was wrong let's try fully random.
+            //int sum = 0;
+            //int rank = 0;
+            //var total = Enumerable.Range(1, maxRank).Sum();
+            //int rand = RandomNumber(1, total);
 
-            for (int i = 0; i < maxRank; i++)
-            {
-                sum += (maxRank - i);
-                if (rand <= sum)
-                {
-                    rank = i + 1;
-                }
-            }
+            //for (int i = 0; i < maxRank; i++)
+            //{
+            //    sum += (maxRank - i);
+            //    if (rand <= sum)
+            //    {
+            //        rank = i + 1;
+            //    }
+            //}
+
+            int rank = RandomNumber(1, maxRank + 1);
 
             return rank;
         }
