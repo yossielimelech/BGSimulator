@@ -60,7 +60,6 @@
     <Compile Include="Model\Enums.cs" />
     <Compile Include="Model\IBrain.cs" />
     <Compile Include="Model\IMinion.cs" />
-    <Compile Include="Model\MinionAmalgam.cs" />
     <Compile Include="Model\TriggerParams.cs" />
     <Compile Include="Utils\LinqExtensions.cs" />
     <Compile Include="Utils\RandomUtils.cs" />
