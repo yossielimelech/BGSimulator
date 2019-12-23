@@ -421,7 +421,7 @@ namespace BGSimulator.Model
                     attack += 3;
                     break;
                 case Adapt.ThreeHealth:
-                    attack += 3;
+                    health += 3;
                     break;
             }
 
