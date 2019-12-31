@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static BGSimulator.Utils.RandomUtils;
 
 namespace BGSimulator.Model
@@ -27,14 +23,13 @@ namespace BGSimulator.Model
             while (!attackerBoard.IsEmpty && !defenderBoard.IsEmpty)
             {
                 PrintBoardState(attackerBoard, defenderBoard);
-                
+
                 attackerBoard.Attack(defenderBoard);
 
                 var temp = attackerBoard;
                 attackerBoard = defenderBoard;
                 defenderBoard = temp;
             }
-
         }
 
         private static void PrintBoardState(Board attackerBoard, Board defenderBoard)
@@ -61,7 +56,6 @@ namespace BGSimulator.Model
             {
                 return FlipCoin();
             }
-
         }
 
         private Player FlipCoin()

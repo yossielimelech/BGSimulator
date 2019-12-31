@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BGSimulator.Model
 {
@@ -35,7 +31,6 @@ namespace BGSimulator.Model
         public Action<TriggerParams> OnBoardChanged { get; set; } = delegate { };
 
         public bool IsDead { get { return Health <= 0; } }
-
 
         public IMinion Clone(bool fullClone = false)
         {

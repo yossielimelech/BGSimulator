@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using static BGSimulator.Utils.RandomUtils;
 
@@ -9,20 +8,22 @@ namespace BGSimulator.Model
 {
     public class Simulation
     {
-        const int NUM_OF_PLAYERS = 8;
-        const int MAX_GOLD = 10;
-        Player LastPlayerDied;
-        BobsTavern shop;
-        Pool pool;
-        Player[] players;
+        private const int NUM_OF_PLAYERS = 8;
+        private const int MAX_GOLD = 10;
+        private Player LastPlayerDied;
+        private BobsTavern shop;
+        private Pool pool;
+        private Player[] players;
 
         public int Round { get; private set; } = 1;
+
         private Simulation()
         {
             Initialize();
         }
 
-        static Simulation instance;
+        private static Simulation instance;
+
         public static Simulation Instance
         {
             get
@@ -54,7 +55,8 @@ namespace BGSimulator.Model
             }
         }
 
-        object deathLock = new object();
+        private object deathLock = new object();
+
         private void PlayerDied(Player player)
         {
             LastPlayerDied = player;
@@ -126,7 +128,6 @@ namespace BGSimulator.Model
         {
             Battle battle = new Battle() { PlayerA = playerA, PlayerB = playerB, PlayerABoard = playerA.Board.Clone(), PlayerBBoard = playerB.Board.Clone() };
             battle.Start();
-
         }
 
         private List<Player> MatchPlayers()
@@ -140,7 +141,6 @@ namespace BGSimulator.Model
             bool matched;
             do
             {
-
                 matched = true;
                 matchedPlayers.Shuffle();
                 foreach (var player in matchedPlayers)
