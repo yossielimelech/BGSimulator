@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace BGSimulator.Model
 {
@@ -30,6 +31,7 @@ namespace BGSimulator.Model
         Rarity Rarity { get; set; }
         MinionTag Tags { get; set; }
         MinionType ValidTargets { get; set; }
+
         IMinion Clone(bool fullClone = false);
 
         void DoAttack(IMinion minion);

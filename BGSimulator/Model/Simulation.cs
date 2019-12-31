@@ -50,7 +50,7 @@ namespace BGSimulator.Model
             players = new Player[NUM_OF_PLAYERS];
             for (int i = 0; i < NUM_OF_PLAYERS; i++)
             {
-                players[i] = new Player() { Name = "Player " + (i + 1), Gold = 3, ShopLevel = 1, ShopLevelupPrice = 6, Shop = shop };
+                players[i] = new Player() { Name = "Player " + (i + 1), Gold = 3, ShopLevel = 1, ShopLevelupPrice = 6, BobsTavern = shop };
                 players[i].OnDeath += PlayerDied;
             }
         }

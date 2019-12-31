@@ -13,6 +13,24 @@ namespace BGSimulator.Model
 
         private const int DISCOVER_MINIONS = 3;
 
+        public IMinion CreateGolden(IEnumerable<IMinion> tripple, int shopLevel)
+        {
+            var baseMinion = GetFreshCopy(tripple.First().Name, forGolden: true);
+            int discoverTier = shopLevel == 6 ? 6 : shopLevel + 1;
+            
+            foreach (var minion in tripple)
+            {
+                baseMinion.Attack += minion.Attack;
+                baseMinion.Health += minion.Health;
+                baseMinion.Attributes &= minion.Attributes;
+            }
+
+            Action<TriggerParams> discover = (tp) => { tp.Player.ChooseDiscover(Discover(m => m.MinionTier.Tier == discoverTier)); };
+            baseMinion.OnPlayed += discover;
+
+            return baseMinion;
+        }
+
         private static Pool instance;
 
         public static Pool Instance
@@ -93,7 +111,7 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Murloc, Name = "Old Murk-Eye", Cost = 4, Rarity = Rarity.Legendary, Attack = 2, Health = 4, MinionTier = MinionTier.Ranks[2] },  //***
 
-                new MinionBase() { MinionType = MinionType.Mech, Name = "Pogo-Hopper", Cost = 1, Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[2], OnPlayed = (tp) => { var count = tp.Player.PlayedMinions.Where(m => m == tp.Activator.Name).Count() - 1; tp.Board.Buff(tp.Activator, count * 2,count * 2); } },
+                new MinionBase() { MinionType = MinionType.Mech, Name = "Pogo-Hopper", Cost = 1, Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[2], OnPlayed = (tp) => { var count = tp.Player.MinionsPlayedThisGame.Where(m => m == tp.Activator.Name).Count() - 1; tp.Board.Buff(tp.Activator, count * 2,count * 2); } },
 
                 new MinionBase() { MinionType = MinionType.Beast, Name = "Rat Pack", Cost = 3, Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[2], Attributes = Attribute.DeathRattle, OnDeath = (tp) => { tp.Board.Summon("Rat", tp.Index, Direction.InPlace, tp.Activator.Attack); } },
 
@@ -311,7 +329,16 @@ namespace BGSimulator.Model
 
             lock (poolMinions)
             {
-                poolMinions.Add(GetFreshCopy(minion.Name));
+                if (minion.Level == 1)
+                {
+                    poolMinions.Add(GetFreshCopy(minion.Name));
+                } else
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        poolMinions.Add(GetFreshCopy(minion.Name));
+                    }
+                }
             }
         }
 
@@ -325,21 +352,6 @@ namespace BGSimulator.Model
 
         private int GetRandomRank(int maxRank)
         {
-            //Base logic was wrong let's try fully random.
-            //int sum = 0;
-            //int rank = 0;
-            //var total = Enumerable.Range(1, maxRank).Sum();
-            //int rand = RandomNumber(1, total);
-
-            //for (int i = 0; i < maxRank; i++)
-            //{
-            //    sum += (maxRank - i);
-            //    if (rand <= sum)
-            //    {
-            //        rank = i + 1;
-            //    }
-            //}
-
             int rank = RandomNumber(1, maxRank + 1);
 
             return rank;
@@ -360,9 +372,18 @@ namespace BGSimulator.Model
             }
         }
 
-        public IMinion GetFreshCopy(string minionName)
+        public IMinion GetFreshCopy(string minionName, bool forGolden = false)
         {
-            return allMinions.First(m => m.Name == minionName)?.Clone();
+            var clone = allMinions.First(m => m.Name == minionName)?.Clone();
+
+            if (forGolden)
+            {
+                clone.Attack = 0;
+                clone.Health = 0;
+                clone.Level = 2;
+            }
+
+            return clone;
         }
     }
 }

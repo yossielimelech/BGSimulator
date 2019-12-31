@@ -11,5 +11,6 @@ namespace BGSimulator.Model
         void Roll(Player player, bool free = false);
         void Mulligen(Player player);
         void Sell(IMinion minionBase);
+        IMinion CreateGolden(Player player, IEnumerable<IMinion> tripple);
     }
 }

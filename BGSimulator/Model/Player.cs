@@ -23,10 +23,10 @@ namespace BGSimulator.Model
         public List<IMinion> Hand { get; set; } = new List<IMinion>();
         public Board Board { get; set; }
         public List<IMinion> ShopOffer { get; set; } = new List<IMinion>();
-        public ITavern Shop { get; set; }
+        public ITavern BobsTavern { get; set; }
         public IBrain Brain { get; set; }
         public int Top { get; set; }
-        public List<string> PlayedMinions { get; private set; } = new List<string>();
+        public List<string> MinionsPlayedThisGame { get; private set; } = new List<string>();
         public Player CurrentMatch { get; set; }
         public Player LastMatch { get; set; }
         public int MissingHealth { get { return PLAYER_MAX_HEALTH - Health; } }
@@ -97,7 +97,7 @@ namespace BGSimulator.Model
 
             Board.RoundEnd();
 
-            Shop.Mulligen(this);
+            BobsTavern.Mulligen(this);
         }
 
         private void Sell()
@@ -106,7 +106,7 @@ namespace BGSimulator.Model
                 return;
 
             var minion = Board.RemoveRandomMinion();
-            Shop.Sell(minion);
+            BobsTavern.Sell(minion);
 
             Console.WriteLine(string.Format(@"Round {2}: {0} has sold a minion {1}", Name, minion.Name, Simulation.Instance.Round));
         }
@@ -132,7 +132,7 @@ namespace BGSimulator.Model
                 }
             }
         }
-       
+
 
         public void TakeDamage(int damage)
         {
@@ -141,7 +141,7 @@ namespace BGSimulator.Model
 
             Health -= damage;
 
-            if(Health <= 0)
+            if (Health <= 0)
             {
                 OnDeath(this);
             }
@@ -157,7 +157,7 @@ namespace BGSimulator.Model
             if (Board.IsFull)
                 return false;
 
-            PlayedMinions.Add(minion.Name);
+            MinionsPlayedThisGame.Add(minion.Name);
             Board.Play(minion, index, target);
             Console.WriteLine(string.Format(@"Round {2}: {0} played {1}", Name, minion.Name, Simulation.Instance.Round));
 
@@ -169,8 +169,8 @@ namespace BGSimulator.Model
         {
             if (Gold > 0)
             {
-                Shop.Mulligen(this);
-                Shop.Roll(this);
+                BobsTavern.Mulligen(this);
+                BobsTavern.Roll(this);
 
                 Console.WriteLine(string.Format(@"Round {1}: {0} rolled", Name, Simulation.Instance.Round));
             }
@@ -202,8 +202,40 @@ namespace BGSimulator.Model
             Hand.Add(minion);
             ShopOffer.Remove(minion);
 
+            CheckForTripple();
+
             Console.WriteLine(string.Format(@"Round {2}: {0} has bought a minion {1}", Name, minion.Name, Simulation.Instance.Round));
 
+        }
+
+        private void CheckForTripple()
+        {
+            var tripple = Hand.Concat(Board.PlayedMinions).Where(m => m.Level == 1).GroupBy(m => m.Name).FirstOrDefault(g => g.Count() == 3)?.Select(m => m);
+
+            if (tripple != null)
+            {
+                foreach (var minion in tripple)
+                {
+                    if (Hand.Contains(minion))
+                        Hand.Remove(minion);
+                    if (Board.PlayedMinions.Contains(minion))
+                        Board.PlayedMinions.Remove(minion);
+                }
+
+                var golden = BobsTavern.CreateGolden(this, tripple);
+
+                AddToHand(golden);
+
+                Console.WriteLine(string.Format(@"Round {2}: {0} created a tripple of minion {1}", Name, tripple.First()?.Name, Simulation.Instance.Round));
+            }
+        }
+
+        private void AddToHand(IMinion minion)
+        {
+            if (Hand.Count == MAX_HAND_SIZE)
+                return;
+
+            Hand.Add(minion);
         }
 
         public Adapt ChooseAdapt()
