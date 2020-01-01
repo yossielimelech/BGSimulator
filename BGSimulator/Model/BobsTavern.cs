@@ -9,7 +9,7 @@ namespace BGSimulator.Model
 
         public IMinion CreateGolden(Player player, IEnumerable<IMinion> tripple)
         {
-            return Pool.CreateGolden(tripple, player.ShopLevel);
+            return Pool.CreateGolden(tripple);
         }
 
         public void Mulligen(Player player)

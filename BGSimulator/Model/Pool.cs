@@ -13,10 +13,9 @@ namespace BGSimulator.Model
 
         private const int DISCOVER_MINIONS = 3;
 
-        public IMinion CreateGolden(IEnumerable<IMinion> tripple, int shopLevel)
+        public IMinion CreateGolden(IEnumerable<IMinion> tripple)
         {
             var baseMinion = GetFreshCopy(tripple.First().Name, forGolden: true);
-            int discoverTier = shopLevel == 6 ? 6 : shopLevel + 1;
             
             foreach (var minion in tripple)
             {
@@ -25,8 +24,22 @@ namespace BGSimulator.Model
                 baseMinion.Attributes &= minion.Attributes;
             }
 
-            Action<TriggerParams> discover = (tp) => { tp.Player.ChooseDiscover(Discover(m => m.MinionTier.Tier == discoverTier)); };
-            baseMinion.OnPlayed += discover;
+
+            Action<TriggerParams> onPlay = (tp) => 
+            {
+                ICard card = new MinionFromTierCard();
+                Action<TriggerParams> discover = (_tp) => {
+
+                    var tier = _tp.Player.ShopLevel == 6 ? 6: _tp.Player.ShopLevel + 1;
+                    _tp.Player.ChooseDiscover(Discover(m => m.MinionTier.Tier == tier));
+                };
+                card.OnPlayed += discover;
+
+                tp.Player.AddToHand(card);
+            };
+
+            baseMinion.OnPlayed += onPlay;
+
 
             return baseMinion;
         }

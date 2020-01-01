@@ -20,7 +20,7 @@ namespace BGSimulator.Model
         public int Gold { get; set; } = 3;
         public int Health { get; set; } = PLAYER_MAX_HEALTH;
         public bool IsDead { get => Health <= 0; }
-        public List<IMinion> Hand { get; set; } = new List<IMinion>();
+        public List<ICard> Hand { get; set; } = new List<ICard>();
         public Board Board { get; set; }
         public List<IMinion> ShopOffer { get; set; } = new List<IMinion>();
         public ITavern BobsTavern { get; set; }
@@ -30,6 +30,7 @@ namespace BGSimulator.Model
         public Player CurrentMatch { get; set; }
         public Player LastMatch { get; set; }
         public int MissingHealth { get { return PLAYER_MAX_HEALTH - Health; } }
+
 
         public Action<Player> OnDeath = delegate { };
 
@@ -115,24 +116,41 @@ namespace BGSimulator.Model
         {
             for (int i = 0; i < Hand.Count; i++)
             {
-                IMinion target = null;
-                var minion = Hand[i];
-                if (minion.Tags.HasFlag(MinionTag.Targeted))
+                if(Hand[i] is IMinion)
                 {
-                    var targets = Board.GetValidTargets(minion.ValidTargets);
-                    if (targets.Any())
-                    {
-                        target = ChooseRandomTarget(targets);
-                    }
+                    PlayMinion(Hand[i] as IMinion);
                 }
-
-                if (Play(minion, target: target))
+                else
                 {
-                    Hand.Remove(minion);
+                    PlayCard(Hand[i]);
                 }
             }
         }
 
+        private void PlayCard(ICard card)
+        {
+            Hand.Remove(card);
+
+            card.OnPlayed(new TriggerParams() { Player = this });
+        }
+
+        private void PlayMinion(IMinion minion)
+        {
+            IMinion target = null;
+            if (minion.Tags.HasFlag(MinionTag.Targeted))
+            {
+                var targets = Board.GetValidTargets(minion.ValidTargets);
+                if (targets.Any())
+                {
+                    target = ChooseRandomTarget(targets);
+                }
+            }
+
+            if (Play(minion, target: target))
+            {
+                Hand.Remove(minion);
+            }
+        }
 
         public void TakeDamage(int damage)
         {
@@ -210,7 +228,7 @@ namespace BGSimulator.Model
 
         private void CheckForTripple()
         {
-            var tripple = Hand.Concat(Board.PlayedMinions).Where(m => m.Level == 1).GroupBy(m => m.Name).FirstOrDefault(g => g.Count() == 3)?.Select(m => m);
+            var tripple = Hand.Where(h => h is IMinion).Cast<IMinion>().Concat(Board.PlayedMinions).Where(m => m.Level == 1).GroupBy(m => m.Name).FirstOrDefault(g => g.Count() == 3)?.Select(m => m);
 
             if (tripple != null)
             {
@@ -230,7 +248,7 @@ namespace BGSimulator.Model
             }
         }
 
-        private void AddToHand(IMinion minion)
+        public void AddToHand(ICard minion)
         {
             if (Hand.Count == MAX_HAND_SIZE)
                 return;
