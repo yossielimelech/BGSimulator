@@ -129,6 +129,9 @@ namespace BGSimulator.Model
 
         private void TryFreeze()
         {
+            if (!ShopOffer.Any())
+                return;
+
             Freeze = RandomNumber(1, 6) == 5;
 
             if (!Freeze)

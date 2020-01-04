@@ -46,15 +46,19 @@ namespace BGSimulator.Model
             }
         }
 
-        public void Buff(IMinion minion, int attack = 0, int health = 0, Attribute attributes = Attribute.None, Action<TriggerParams> deathRattle = null)
+        public void Buff(IMinion buffer, IMinion minion, int attack = 0, int health = 0, Attribute attributes = Attribute.None, Action<TriggerParams> deathRattle = null)
         {
-            minion.Attack += attack;
-            minion.Health += health;
-            minion.Attributes |= attributes;
-
-            if (deathRattle != null)
+            int amount = buffer?.Level ?? 1;
+            for (int i = 0; i < amount; i++)
             {
-                minion.OnDeath += deathRattle;
+                minion.Attack += attack;
+                minion.Health += health;
+                minion.Attributes |= attributes;
+
+                if (deathRattle != null)
+                {
+                    minion.OnDeath += deathRattle;
+                }
             }
         }
 
@@ -102,7 +106,7 @@ namespace BGSimulator.Model
                     break;
             }
 
-            BuffAllOfType(MinionType.Murloc, attack, health, attr, deathRattle);
+            BuffAllOfType(null, MinionType.Murloc, attack, health, attr, deathRattle);
         }
 
         public void BuffAdjacent(IMinion minion, int attack, int health, Attribute attributes)
@@ -110,42 +114,42 @@ namespace BGSimulator.Model
             var adjacents = GetAdjacentMinions(minion);
             foreach (var adj in adjacents)
             {
-                Buff(adj, attack, health, attributes);
+                Buff(minion, adj, attack, health, attributes);
             }
         }
 
-        public void BuffAllOfType(MinionType type, int attack = 0, int health = 0, Attribute attributes = Attribute.None, Action<TriggerParams> deathRattle = null)
+        public void BuffAllOfType(IMinion buffer, MinionType type, int attack = 0, int health = 0, Attribute attributes = Attribute.None, Action<TriggerParams> deathRattle = null)
         {
             foreach (var minion in PlayedMinions)
             {
                 if ((type & minion.MinionType) != 0)
                 {
-                    Buff(minion, attack, health, attributes, deathRattle);
+                    Buff(buffer, minion, attack, health, attributes, deathRattle);
                 }
             }
         }
 
-        public void BuffAllWithAttribute(Attribute attribute, int attack, int health)
+        public void BuffAllWithAttribute(IMinion buffer, Attribute attribute, int attack, int health)
         {
             foreach (var minion in PlayedMinions)
             {
                 if (minion.Attributes.HasFlag(attribute))
                 {
-                    Buff(minion, attack, health);
+                    Buff(buffer, minion, attack, health);
                 }
             }
         }
 
-        public void BuffRandom(int attack = 0, int health = 0, Attribute attributes = Attribute.None, MinionType type = MinionType.All)
+        public void BuffRandom(IMinion buffer, int attack = 0, int health = 0, Attribute attributes = Attribute.None, MinionType type = MinionType.All)
         {
             var buffee = GetRandomMinion(type);
             if (buffee == null)
                 return;
 
-            Buff(buffee, attack, health, attributes);
+            Buff(buffer, buffee, attack, health, attributes);
         }
 
-        public void BuffRandomUnique(List<MinionType> buffedTypes, int attack, int health)
+        public void BuffRandomUnique(IMinion buffer, List<MinionType> buffedTypes, int attack, int health)
         {
             var uniqueBuffed = new List<IMinion>();
 
@@ -158,7 +162,7 @@ namespace BGSimulator.Model
 
             foreach (var buffed in uniqueBuffed)
             {
-                Buff(buffed, attack, health);
+                Buff(buffer, buffed, attack, health);
             }
         }
 
@@ -250,6 +254,12 @@ namespace BGSimulator.Model
             }
         }
 
+        public void ShootMinion(IMinion minion, int damage, Board rivalBoard)
+        {
+            MinionTakeDamage(minion, damage);
+            ClearDeaths(rivalBoard);
+        }
+
         public void Play(IMinion minion, int index = 0, IMinion target = null)
         {
             OnMinionSummon(minion, index);
@@ -304,7 +314,7 @@ namespace BGSimulator.Model
             }
         }
 
-        public void Summon(string minionName, int index, Direction direction = Direction.Right, int amount = 1)
+        public void Summon(string minionName, int index, Direction direction = Direction.Right, int amount = 1, bool golden = false)
         {
             for (int i = 0; i < amount; i++)
             {
@@ -319,11 +329,11 @@ namespace BGSimulator.Model
             }
         }
 
-        public void Summon(List<IMinion> minions, int index, Direction direction)
+        public void Summon(List<IMinion> minions, int index, Direction direction, bool golden = false)
         {
             foreach (var minion in minions)
             {
-                Summon(minion.Name, index, direction);
+                Summon(minion.Name, index, direction, golden: golden);
             }
         }
 
@@ -352,7 +362,7 @@ namespace BGSimulator.Model
             }
         }
 
-        private void ClearDeaths(Board defenderBoard)
+        private void ClearDeaths(Board rivalBoard)
         {
             Dictionary<IMinion, int> deaths = new Dictionary<IMinion, int>();
 
@@ -370,8 +380,8 @@ namespace BGSimulator.Model
 
             foreach (var kv in deaths)
             {
-                kv.Key.OnDeath(new TriggerParams() { Activator = kv.Key, Board = this, RivalBoard = defenderBoard, Index = kv.Value });
-                OnMinionDied(kv.Key, defenderBoard);
+                kv.Key.OnDeath(new TriggerParams() { Activator = kv.Key, Board = this, RivalBoard = rivalBoard, Index = kv.Value });
+                OnMinionDied(kv.Key, rivalBoard);
             }
         }
 
@@ -407,11 +417,11 @@ namespace BGSimulator.Model
             }
         }
 
-        private void OnMinionDied(IMinion deadMinion, Board defenderBoard)
+        private void OnMinionDied(IMinion deadMinion, Board rivalBoad)
         {
             foreach (var minion in PlayedMinions.Where(m => m != deadMinion))
             {
-                minion.OnMinionDied(new TriggerParams() { Activator = minion, Target = deadMinion, Board = this, RivalBoard = defenderBoard });
+                minion.OnMinionDied(new TriggerParams() { Activator = minion, Target = deadMinion, Board = this, RivalBoard = rivalBoad });
             }
         }
 
