@@ -254,15 +254,14 @@ namespace BGSimulator.Model
             }
         }
 
-        public void ShootRandomMinion(IMinion shooter, int damage, Board rivalBoard)
+        public void ShootRandomMinion(int damage, Board rivalBoard, int repeat = 1)
         {
-            for (int i = 0; i < shooter.Level; i++)
+            for (int i = 0; i < repeat; i++)
             {
                 var minion = rivalBoard.GetRandomMinion();
                 if(minion != null)
                 {
                     rivalBoard.MinionTakeDamage(minion, damage);
-                    rivalBoard.ClearDeaths(this);
                 }
             }
         }
@@ -426,10 +425,12 @@ namespace BGSimulator.Model
 
         private void OnMinionDied(IMinion deadMinion, Board rivalBoad)
         {
-            foreach (var minion in PlayedMinions.Where(m => m != deadMinion))
+            for (int i = 0; i < PlayedMinions.Count; i++)
             {
-                minion.OnMinionDied(new TriggerParams() { Activator = minion, Target = deadMinion, Board = this, RivalBoard = rivalBoad });
+                PlayedMinions[i].OnMinionDied(new TriggerParams() { Activator = PlayedMinions[i], Target = deadMinion, Board = this, RivalBoard = rivalBoad });
             }
+
+            rivalBoad.ClearDeaths(this);
         }
 
         private void OnMinionLostDivineShield(IMinion lostDivine)

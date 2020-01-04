@@ -92,7 +92,7 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Mech, Name = "Rockpool Hunter", Cost = 2, Attack = 2, Health = 3, MinionTier = MinionTier.Ranks[1], Tags = MinionTag.Targeted | MinionTag.BattleCry, ValidTargets = MinionType.Murloc, OnPlayed =(tp) => { if(tp.Target == null) return; tp.Board.Buff(tp.Activator, minion: tp.Target, attack: 1, health: 1); } },
 
-                new MinionBase() { MinionType = MinionType.Neutral, Name = "Selfless Hero", Attack = 2, Health = 1, MinionTier = MinionTier.Ranks[1], OnDeath = (tp) => { for (int i = 0; i < tp.Activator.Level; i++) { tp.Board.BuffRandom(null, attributes: Attribute.DivineShield); } } },
+                new MinionBase() { MinionType = MinionType.Neutral, Name = "Selfles s Hero", Attack = 2, Health = 1, MinionTier = MinionTier.Ranks[1], OnDeath = (tp) => { for (int i = 0; i < tp.Activator.Level; i++) { tp.Board.BuffRandom(null, attributes: Attribute.DivineShield); } } },
 
                 new MinionBase() { MinionType = MinionType.Demon, Name = "Voidwalker", Attack = 1, Health = 3 , MinionTier = MinionTier.Ranks[1], Attributes = Attribute.Taunt },
 
@@ -107,7 +107,7 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Mech, Name = "Damaged Golem", Attack = 2, Health = 1, MinionTier = MinionTier.Ranks[1], PoolMinion = false },
 
-                new MinionBase() { MinionType = MinionType.Mech, Name = "Kaboom Bot", Cost = 3, Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[2], OnDeath = (tp) => { tp.Board.ShootRandomMinion(tp.Activator, 4, tp.RivalBoard); } },
+                new MinionBase() { MinionType = MinionType.Mech, Name = "Kaboom Bot", Cost = 3, Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[2], OnDeath = (tp) => { tp.Board.ShootRandomMinion(4, tp.RivalBoard, tp.Activator.Level); } },
 
                 new MinionBase() { MinionType = MinionType.Beast, Name = "Kindly Grandmother", Cost = 2, Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[2], Attributes = Attribute.DeathRattle, OnDeath = (tp) => { tp.Board.Summon("Big Bad Wolf", tp.Index, Direction.InPlace, golden: tp.Activator.Level == 2); } },
 
@@ -176,7 +176,7 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Neutral, Name = "Shifter Zerus", Cost = 1, Rarity = Rarity.Legendary, Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[3] }, //***
 
-                new MinionBase() { MinionType = MinionType.Neutral, Name = "Soul Juggler", Cost = -1, Attack = 3, Health = 3, MinionTier = MinionTier.Ranks[3], OnMinionDied = (tp) => { if(tp.Target.MinionType != MinionType.Demon) return;  tp.Board.ShootRandomMinion(tp.Activator, 3, tp.RivalBoard); } },
+                new MinionBase() { MinionType = MinionType.Neutral, Name = "Soul Juggler", Cost = -1, Attack = 3, Health = 3, MinionTier = MinionTier.Ranks[3], OnMinionDied = (tp) => { if(tp.Target.MinionType != MinionType.Demon) return;  tp.Board.ShootRandomMinion(3, tp.RivalBoard); } },
 
                 new MinionBase() { MinionType = MinionType.Beast, Name = "The Beast", Cost = 6, Attack = 9, Rarity = Rarity.Legendary, Health = 7, MinionTier = MinionTier.Ranks[3], Attributes = Attribute.DeathRattle, OnDeath = (tp) => { tp.RivalBoard.Summon("Finkle Einhorn", tp.RivalBoard.PlayedMinions.Count - 1); } },
 

@@ -81,7 +81,7 @@ namespace BGSimulator.Model
                 bool shopHasDouble = ShopOffer.GroupBy(m => m.Name).Any(g => g.Count() > 1);
                 bool canMakeTriple = Hand.Concat(Board.PlayedMinions).Concat(ShopOffer).GroupBy(m => m.Name).Any(g => g.Count() > 2);
                 bool canSell = Hand.Any() || Board.PlayedMinions.Any();
-                bool canPlay = Hand.Any() && !Board.IsFull;
+                bool canPlay = Hand.Any();
 
                 if (Simulation.Instance.Round == 2)
                 {
@@ -109,13 +109,9 @@ namespace BGSimulator.Model
 
                 if (canPlay)
                 {
+                    if(tableFull)
+                        Sell();
                     PlayHand();
-                    continue;
-                }
-
-                if (tableFull)
-                {
-                    Sell();
                     continue;
                 }
 
@@ -159,7 +155,7 @@ namespace BGSimulator.Model
 
         private void Buy()
         {
-            if (Gold < 3 || Hand.Count == MAX_HAND_SIZE)
+            if (Gold < 3 || Hand.Count == MAX_HAND_SIZE || !ShopOffer.Any())
                 return;
 
             Gold -= 3;

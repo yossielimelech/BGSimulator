@@ -8,7 +8,7 @@ namespace BGSimulator.Model
 {
     public class Simulation
     {
-        private const int NUM_OF_PLAYERS = 8;
+        private const int NUM_OF_PLAYERS = 2;
         private const int MAX_GOLD = 10;
         private Player LastPlayerDied;
         private BobsTavern shop;
