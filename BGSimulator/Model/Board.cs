@@ -254,10 +254,17 @@ namespace BGSimulator.Model
             }
         }
 
-        public void ShootMinion(IMinion minion, int damage, Board rivalBoard)
+        public void ShootRandomMinion(IMinion shooter, int damage, Board rivalBoard)
         {
-            MinionTakeDamage(minion, damage);
-            ClearDeaths(rivalBoard);
+            for (int i = 0; i < shooter.Level; i++)
+            {
+                var minion = rivalBoard.GetRandomMinion();
+                if(minion != null)
+                {
+                    rivalBoard.MinionTakeDamage(minion, damage);
+                    rivalBoard.ClearDeaths(this);
+                }
+            }
         }
 
         public void Play(IMinion minion, int index = 0, IMinion target = null)
