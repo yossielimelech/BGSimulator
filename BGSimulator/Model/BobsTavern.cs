@@ -19,11 +19,18 @@ namespace BGSimulator.Model
 
         public void Roll(Player player, bool free = false)
         {
-            if (!free && player.Gold == 0)
+            if ((!free && player.Gold == 0))
                 return;
 
-            if (!free)
+            if(player.Freeze)
+            {
+                player.Freeze = false;
+                return;
+            }
+
+                if (!free)
                 player.Gold--;
+
 
             player.ShopOffer = Pool.Roll(AmountToDeal(player.ShopLevel), player.ShopLevel);
         }

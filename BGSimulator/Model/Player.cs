@@ -10,34 +10,60 @@ namespace BGSimulator.Model
     public class Player
     {
 
-        const int MAX_SHOP_LEVEL = 6;
-        const int MAX_HAND_SIZE = 10;
-        const int PLAYER_MAX_HEALTH = 40;
-
-        public string Name { get; set; }
-        public int ShopLevel { get; set; } = 1;
-        public int ShopLevelupPrice { get; set; }
-        public int Gold { get; set; } = 3;
-        public int Health { get; set; } = PLAYER_MAX_HEALTH;
-        public bool IsDead { get => Health <= 0; }
-        public List<ICard> Hand { get; set; } = new List<ICard>();
-        public Board Board { get; set; }
-        public List<IMinion> ShopOffer { get; set; } = new List<IMinion>();
-        public ITavern BobsTavern { get; set; }
-        public IBrain Brain { get; set; }
-        public int Top { get; set; }
-        public List<string> MinionsPlayedThisGame { get; private set; } = new List<string>();
-        public Player CurrentMatch { get; set; }
-        public Player LastMatch { get; set; }
-        public int MissingHealth { get { return PLAYER_MAX_HEALTH - Health; } }
-
-
         public Action<Player> OnDeath = delegate { };
-
+        const int MAX_HAND_SIZE = 10;
+        const int MAX_SHOP_LEVEL = 6;
+        const int PLAYER_MAX_HEALTH = 40;
 
         public Player()
         {
             Board = new Board() { Player = this };
+        }
+
+        public Board Board { get; set; }
+        public ITavern BobsTavern { get; set; }
+        public IBrain Brain { get; set; }
+        public Player CurrentMatch { get; set; }
+        public int Gold { get; set; } = 3;
+        public List<ICard> Hand { get; set; } = new List<ICard>();
+        public int Health { get; set; } = PLAYER_MAX_HEALTH;
+        public bool IsDead { get => Health <= 0; }
+        public Player LastMatch { get; set; }
+        public List<string> MinionsPlayedThisGame { get; private set; } = new List<string>();
+        public int MissingHealth { get { return PLAYER_MAX_HEALTH - Health; } }
+        public string Name { get; set; }
+        public int ShopLevel { get; set; } = 1;
+        public int ShopLevelupPrice { get; set; }
+        public List<IMinion> ShopOffer { get; set; } = new List<IMinion>();
+        public int Top { get; set; }
+        public bool Freeze { get; set; }
+
+        public void AddToHand(ICard minion)
+        {
+            if (Hand.Count == MAX_HAND_SIZE)
+                return;
+
+            Hand.Add(minion);
+        }
+
+        public Adapt ChooseAdapt()
+        {
+            var adaptOptions = GetAdaptOptions();
+            return adaptOptions.First();
+        }
+
+        public void ChooseDiscover(List<IMinion> minions)
+        {
+            if (Hand.Count == MAX_HAND_SIZE)
+            {
+                Pool.Instance.Return(minions);
+                return;
+            }
+
+            var minion = ChooseRandomMinion(minions);
+            minions.Remove(minion);
+            Pool.Instance.Return(minions);
+            Hand.Add(minion);
         }
 
         public void PlayRound()
@@ -96,59 +122,22 @@ namespace BGSimulator.Model
                 done = !canBuy && !canLevel;
             }
 
+            TryFreeze();
+
             Board.RoundEnd();
-
-            BobsTavern.Mulligen(this);
         }
 
-        private void Sell()
+        private void TryFreeze()
         {
-            if (Board.IsEmpty)
-                return;
+            Freeze = RandomNumber(1, 6) == 5;
 
-            var minion = Board.RemoveRandomMinion();
-            BobsTavern.Sell(minion);
-
-            Console.WriteLine(string.Format(@"Round {2}: {0} has sold a minion {1}", Name, minion.Name, Simulation.Instance.Round));
-        }
-
-        private void PlayHand()
-        {
-            for (int i = 0; i < Hand.Count; i++)
+            if (!Freeze)
             {
-                if(Hand[i] is IMinion)
-                {
-                    PlayMinion(Hand[i] as IMinion);
-                }
-                else
-                {
-                    PlayCard(Hand[i]);
-                }
+                BobsTavern.Mulligen(this);
             }
-        }
-
-        private void PlayCard(ICard card)
-        {
-            Hand.Remove(card);
-
-            card.OnPlayed(new TriggerParams() { Player = this });
-        }
-
-        private void PlayMinion(IMinion minion)
-        {
-            IMinion target = null;
-            if (minion.Tags.HasFlag(MinionTag.Targeted))
+            else
             {
-                var targets = Board.GetValidTargets(minion.ValidTargets);
-                if (targets.Any())
-                {
-                    target = ChooseRandomTarget(targets);
-                }
-            }
-
-            if (Play(minion, target: target))
-            {
-                Hand.Remove(minion);
+                Console.WriteLine(string.Format(@"Round {1}: {0} Froze the tavern", Name, Simulation.Instance.Round));
             }
         }
 
@@ -162,50 +151,6 @@ namespace BGSimulator.Model
             if (Health <= 0)
             {
                 OnDeath(this);
-            }
-        }
-
-        private IMinion ChooseRandomTarget(List<IMinion> targets)
-        {
-            return targets[RandomNumber(0, targets.Count)];
-        }
-
-        private bool Play(IMinion minion, int index = 0, IMinion target = null)
-        {
-            if (Board.IsFull)
-                return false;
-
-            MinionsPlayedThisGame.Add(minion.Name);
-            Board.Play(minion, index, target);
-            Console.WriteLine(string.Format(@"Round {2}: {0} played {1}", Name, minion.Name, Simulation.Instance.Round));
-
-            return true;
-        }
-
-
-        private void Roll()
-        {
-            if (Gold > 0)
-            {
-                BobsTavern.Mulligen(this);
-                BobsTavern.Roll(this);
-
-                Console.WriteLine(string.Format(@"Round {1}: {0} rolled", Name, Simulation.Instance.Round));
-            }
-        }
-
-        private void LevelUp()
-        {
-            if (ShopLevel == MAX_SHOP_LEVEL)
-                return;
-
-            if (Gold >= ShopLevelupPrice)
-            {
-                ShopLevel++;
-                Gold -= ShopLevelupPrice;
-                ShopLevelupPrice = ShopLevel + 5;
-
-                Console.WriteLine(string.Format(@"Round {2}: {0} has leveled up to level {1}", Name, ShopLevel, Simulation.Instance.Round));
             }
         }
 
@@ -248,18 +193,14 @@ namespace BGSimulator.Model
             }
         }
 
-        public void AddToHand(ICard minion)
+        private IMinion ChooseRandomMinion(List<IMinion> minions)
         {
-            if (Hand.Count == MAX_HAND_SIZE)
-                return;
-
-            Hand.Add(minion);
+            return minions[RandomNumber(0, minions.Count)];
         }
 
-        public Adapt ChooseAdapt()
+        private IMinion ChooseRandomTarget(List<IMinion> targets)
         {
-            var adaptOptions = GetAdaptOptions();
-            return adaptOptions.First();
+            return targets[RandomNumber(0, targets.Count)];
         }
 
         private IEnumerable<Adapt> GetAdaptOptions()
@@ -269,23 +210,93 @@ namespace BGSimulator.Model
             return adapts.Take(3);
         }
 
-        public void ChooseDiscover(List<IMinion> minions)
+        private void LevelUp()
         {
-            if (Hand.Count == MAX_HAND_SIZE)
-            {
-                Pool.Instance.Return(minions);
+            if (ShopLevel == MAX_SHOP_LEVEL)
                 return;
-            }
 
-            var minion = ChooseRandomMinion(minions);
-            minions.Remove(minion);
-            Pool.Instance.Return(minions);
-            Hand.Add(minion);
+            if (Gold >= ShopLevelupPrice)
+            {
+                ShopLevel++;
+                Gold -= ShopLevelupPrice;
+                ShopLevelupPrice = ShopLevel + 5;
+
+                Console.WriteLine(string.Format(@"Round {2}: {0} has leveled up to level {1}", Name, ShopLevel, Simulation.Instance.Round));
+            }
         }
 
-        private IMinion ChooseRandomMinion(List<IMinion> minions)
+        private bool Play(IMinion minion, int index = 0, IMinion target = null)
         {
-            return minions[RandomNumber(0, minions.Count)];
+            if (Board.IsFull)
+                return false;
+
+            MinionsPlayedThisGame.Add(minion.Name);
+            Board.Play(minion, index, target);
+            Console.WriteLine(string.Format(@"Round {2}: {0} played {1}", Name, minion.Name, Simulation.Instance.Round));
+
+            return true;
+        }
+
+        private void PlayCard(ICard card)
+        {
+            Hand.Remove(card);
+
+            card.OnPlayed(new TriggerParams() { Player = this });
+        }
+
+        private void PlayHand()
+        {
+            for (int i = 0; i < Hand.Count; i++)
+            {
+                if (Hand[i] is IMinion)
+                {
+                    PlayMinion(Hand[i] as IMinion);
+                }
+                else
+                {
+                    PlayCard(Hand[i]);
+                }
+            }
+        }
+
+        private void PlayMinion(IMinion minion)
+        {
+            IMinion target = null;
+            if (minion.Tags.HasFlag(MinionTag.Targeted))
+            {
+                var targets = Board.GetValidTargets(minion.ValidTargets);
+                if (targets.Any())
+                {
+                    target = ChooseRandomTarget(targets);
+                }
+            }
+
+            if (Play(minion, target: target))
+            {
+                Hand.Remove(minion);
+            }
+        }
+
+        private void Roll()
+        {
+            if (Gold > 0)
+            {
+                BobsTavern.Mulligen(this);
+                BobsTavern.Roll(this);
+
+                Console.WriteLine(string.Format(@"Round {1}: {0} rolled", Name, Simulation.Instance.Round));
+            }
+        }
+
+        private void Sell()
+        {
+            if (Board.IsEmpty)
+                return;
+
+            var minion = Board.RemoveRandomMinion();
+            BobsTavern.Sell(minion);
+
+            Console.WriteLine(string.Format(@"Round {2}: {0} has sold a minion {1}", Name, minion.Name, Simulation.Instance.Round));
         }
     }
 }
