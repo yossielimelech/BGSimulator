@@ -148,7 +148,7 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Neutral, Name = "Crystalweaver", Cost = 4, Attack = 5, Health = 4, MinionTier = MinionTier.Ranks[3], Tags = MinionTag.Targeted | MinionTag.BattleCry, ValidTargets = MinionType.Demon, OnPlayed = (tp) => { if(tp.Target == null) return; tp.Board.Buff(tp.Activator, tp.Target, 1, 1); } },
 
-                new MinionBase() { MinionType = MinionType.Demon, Name = "Floating Watcher", Cost = 5, Attack = 4, Health = 4 , MinionTier = MinionTier.Ranks[3], }, // on player damage
+                new MinionBase() { MinionType = MinionType.Demon, Name = "Floating Watcher", Cost = 5, Attack = 4, Health = 4 , MinionTier = MinionTier.Ranks[3], OnPlayerDamage = (tp) => { tp.Board.Buff(tp.Activator,tp.Activator,2 ,2); } }, // on player damage
 
                 new MinionBase() { MinionType = MinionType.Neutral, Name = "Houndmaster", Cost = 4, Attack = 4, Health = 3, MinionTier = MinionTier.Ranks[3], Tags = MinionTag.Targeted | MinionTag.BattleCry, ValidTargets = MinionType.Beast, OnPlayed = (tp) => { if(tp.Target == null) return; tp.Board.Buff(tp.Activator, tp.Target, 2, 2); } },
 
@@ -232,7 +232,7 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Neutral, Name = "Lightfang Enforcer", Cost = 6, Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[5], OnTurnEnd = (tp) => { tp.Board.BuffRandomUnique(tp.Activator, new List<MinionType>(){ MinionType.Beast, MinionType.Demon, MinionType.Mech, MinionType.Murloc }, 2, 1);  } },
 
-                new MinionBase() { MinionType = MinionType.Demon, Name = "Mal'Ganis", Cost = 9, Rarity = Rarity.Legendary, Attack = 9, Health =7, MinionTier = MinionTier.Ranks[5]}, //***
+                new MinionBase() { MinionType = MinionType.Demon, Name = "Mal'Ganis", Cost = 9, Rarity = Rarity.Legendary, Attack = 9, Health = 7, MinionTier = MinionTier.Ranks[5], Tags = MinionTag.PlayerImmunity, OnSummonSelf = (tp) => { tp.Board.BuffAllOfType(tp.Activator, MinionType.Demon, 2, 2, temp: true); } },
 
                 new MinionBase() { MinionType = MinionType.Mech, Name = "Robosaur", Attack = 8, Health = 8, MinionTier = MinionTier.Ranks[1], PoolMinion = false },
 

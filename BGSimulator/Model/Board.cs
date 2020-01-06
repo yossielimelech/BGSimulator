@@ -46,15 +46,22 @@ namespace BGSimulator.Model
             }
         }
 
-        public void Buff(IMinion buffer, IMinion minion, int attack = 0, int health = 0, Attribute attributes = Attribute.None, Action<TriggerParams> deathRattle = null)
+        public void Buff(IMinion buffer, IMinion minion, int attack = 0, int health = 0, Attribute attributes = Attribute.None, Action<TriggerParams> deathRattle = null, bool temp = false)
         {
             int amount = buffer?.Level ?? 1;
             for (int i = 0; i < amount; i++)
             {
-                minion.Attack += attack;
-                minion.Health += health;
-                minion.Attributes |= attributes;
-
+                if (!temp)
+                {
+                    minion.Attack += attack;
+                    minion.Health += health;
+                    minion.Attributes |= attributes;
+                }
+                else
+                {
+                    minion.TempBuffs.Add(buffer, new Buff() { Attack = attack, Health = health, Attribute = attributes });
+                    buffer.OnDeath += (tp) => { minion.TempBuffs.Remove(buffer); };
+                }
                 if (deathRattle != null)
                 {
                     minion.OnDeath += deathRattle;
@@ -118,13 +125,13 @@ namespace BGSimulator.Model
             }
         }
 
-        public void BuffAllOfType(IMinion buffer, MinionType type, int attack = 0, int health = 0, Attribute attributes = Attribute.None, Action<TriggerParams> deathRattle = null)
+        public void BuffAllOfType(IMinion buffer, MinionType type, int attack = 0, int health = 0, Attribute attributes = Attribute.None, Action<TriggerParams> deathRattle = null, bool temp = false)
         {
             foreach (var minion in PlayedMinions)
             {
                 if ((type & minion.MinionType) != 0)
                 {
-                    Buff(buffer, minion, attack, health, attributes, deathRattle);
+                    Buff(buffer, minion, attack, health, attributes, deathRattle, temp);
                 }
             }
         }
@@ -137,6 +144,14 @@ namespace BGSimulator.Model
                 {
                     Buff(buffer, minion, attack, health);
                 }
+            }
+        }
+
+        public void PlayerTookDamage()
+        {
+            foreach (var minion in PlayedMinions)
+            {
+                minion.OnPlayerDamage(new TriggerParams() { Activator = minion, Board = this, Player = Player });
             }
         }
 
@@ -171,7 +186,7 @@ namespace BGSimulator.Model
             var adjacent = GetAdjacentMinions(target);
             foreach (var minion in adjacent)
             {
-                MinionTakeDamage(minion, activator.Attack);
+                MinionTakeDamage(minion, activator.CurrentAttack);
             }
         }
 
@@ -229,8 +244,8 @@ namespace BGSimulator.Model
 
         public void MinionAttack(IMinion attacker, IMinion defender, Board defenderBoard)
         {
-            defenderBoard.MinionTakeDamage(defender, attacker.Attack);
-            MinionTakeDamage(attacker, defender.Attack);
+            defenderBoard.MinionTakeDamage(defender, attacker.CurrentAttack);
+            MinionTakeDamage(attacker, defender.CurrentAttack);
 
             attacker.OnAttack(new TriggerParams() { Activator = attacker, Target = defender, Board = this, RivalBoard = defenderBoard });
             OnMinionAttacked(attacker);
@@ -254,6 +269,14 @@ namespace BGSimulator.Model
             }
         }
 
+        public IMinion RemoveSmallestMinion()
+        {
+
+            var minion = PlayedMinions.OrderBy(m => m.Health).ThenBy(m => m.Attack).First();
+            PlayedMinions.Remove(minion);
+            return minion;
+        }
+
         public void ShootRandomMinion(int damage, Board rivalBoard, int repeat = 1)
         {
             for (int i = 0; i < repeat; i++)
@@ -269,11 +292,13 @@ namespace BGSimulator.Model
         public void Play(IMinion minion, int index = 0, IMinion target = null)
         {
             OnMinionSummon(minion, index);
+            minion.OnSummonSelf(new TriggerParams() { Activator = minion, Index = index, Board = this, Player = Player });
             PlayedMinions.Insert(index, minion);
             for (int j = 0; j < minion.Level; j++)
             {
                 minion.OnPlayed(new TriggerParams() { Activator = minion, Index = index, Target = target, Board = this, Player = Player });
             }
+
         }
 
         public void Remove(IMinion defendingMinion)

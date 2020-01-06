@@ -7,6 +7,8 @@ namespace BGSimulator.Model
     {
         int Attack { get; set; }
         Attribute Attributes { get; set; }
+        int CurrentHealth { get; }
+        int CurrentAttack { get; }
         int Health { get; set; }
         bool IsDead { get; }
         int Level { get; set; }
@@ -22,13 +24,16 @@ namespace BGSimulator.Model
         Action<TriggerParams> OnMinionDied { get; set; }
         Action<TriggerParams> OnMinionLostDivineShield { get; set; }
         Action<TriggerParams> OnMinionSummon { get; set; }
+        Action<TriggerParams> OnSummonSelf { get; set; }
         Action<TriggerParams> OnTurnEnd { get; set; }
         Action<TriggerParams> OnTurnStart { get; set; }
+        Action<TriggerParams> OnPlayerDamage { get; set; }
+
+        Dictionary<IMinion, Buff> TempBuffs { get; set; }
         bool PoolMinion { get; set; }
         MinionTag Tags { get; set; }
         MinionType ValidTargets { get; set; }
         IMinion Clone(bool fullClone = false);
-        void DoAttack(IMinion minion);
         (bool tookDamage, bool lostDivine) TakeDamage(int damage);
     }
 }

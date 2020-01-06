@@ -82,6 +82,7 @@ namespace BGSimulator.Model
                 bool canMakeTriple = Hand.Concat(Board.PlayedMinions).Concat(ShopOffer).GroupBy(m => m.Name).Any(g => g.Count() > 2);
                 bool canSell = Hand.Any() || Board.PlayedMinions.Any();
                 bool canPlay = Hand.Any();
+                bool shopOfferEmpty = !ShopOffer.Any();
 
                 if (Simulation.Instance.Round == 2)
                 {
@@ -92,6 +93,12 @@ namespace BGSimulator.Model
                 if (canBuyAndLevel)
                 {
                     LevelUp();
+                    continue;
+                }
+
+                if(canRoll && shopOfferEmpty)
+                {
+                    Roll();
                     continue;
                 }
 
@@ -114,6 +121,7 @@ namespace BGSimulator.Model
                     PlayHand();
                     continue;
                 }
+
 
                 done = !canBuy && !canLevel;
             }
@@ -147,10 +155,13 @@ namespace BGSimulator.Model
 
             Health -= damage;
 
+            Board.PlayerTookDamage();
+
             if (Health <= 0)
             {
                 OnDeath(this);
             }
+
         }
 
         private void Buy()
@@ -292,7 +303,7 @@ namespace BGSimulator.Model
             if (Board.IsEmpty)
                 return;
 
-            var minion = Board.RemoveRandomMinion();
+            var minion = Board.RemoveSmallestMinion();
             BobsTavern.Sell(minion);
 
             Console.WriteLine(string.Format(@"Round {2}: {0} has sold a minion {1}", Name, minion.Name, Simulation.Instance.Round));

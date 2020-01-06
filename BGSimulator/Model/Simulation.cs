@@ -55,8 +55,6 @@ namespace BGSimulator.Model
             }
         }
 
-        private object deathLock = new object();
-
         private void PlayerDied(Player player)
         {
             LastPlayerDied = player;

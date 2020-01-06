@@ -14,10 +14,38 @@ namespace BGSimulator.Model
         public int Level { get; set; } = 1;
         public int Health { get; set; }
         public int Attack { get; set; }
+
+        public int CurrentHealth
+        {
+            get
+            {
+                int currHealth = Health;
+                foreach (var buff in TempBuffs.Values)
+                {
+                    currHealth += buff.Health;
+                }
+                return currHealth;
+            }
+        }
+
+        public int CurrentAttack
+        {
+            get
+            {
+                int currAttack = Attack;
+                foreach (var buff in TempBuffs.Values)
+                {
+                    currAttack += buff.Attack;
+                }
+                return currAttack;
+            }
+        }
+
         public bool PoolMinion { get; set; } = true;
         public Action<TriggerParams> OnDeath { get; set; } = delegate { };
         public Action<TriggerParams> OnTurnStart { get; set; } = delegate { };
         public Action<TriggerParams> OnTurnEnd { get; set; } = delegate { };
+        public Action<TriggerParams> OnSummonSelf { get; set; } = delegate { };
         public Action<TriggerParams> OnMinionSummon { get; set; } = delegate { };
         public Action<TriggerParams> OnAttack { get; set; } = delegate { };
         public Action<TriggerParams> OnMinionAttacked { get; set; } = delegate { };
@@ -26,23 +54,25 @@ namespace BGSimulator.Model
         public Action<TriggerParams> OnMinionDamaged { get; set; } = delegate { };
         public Action<TriggerParams> OnMinionLostDivineShield { get; set; } = delegate { };
         public Action<TriggerParams> OnBoardChanged { get; set; } = delegate { };
+        public Action<TriggerParams> OnPlayerDamage { get; set; } = delegate { };
+        public Dictionary<IMinion, Buff> TempBuffs { get; set; } = new Dictionary<IMinion, Buff>();
 
-        public bool IsDead { get { return Health <= 0; } }
+        public bool IsDead { get { return CurrentHealth <= 0; } }
+
 
         public IMinion Clone(bool fullClone = false)
         {
             return this.MemberwiseClone() as IMinion;
         }
 
-        public void DoAttack(IMinion minion)
-        {
-            minion.TakeDamage(Attack);
-            TakeDamage(minion.Attack);
-        }
-
         public (bool tookDamage, bool lostDivine) TakeDamage(int damage)
         {
-            if (damage > 0 && (Attributes & Attribute.DivineShield) != 0)
+            if (damage == 0)
+            {
+                return (false, false);
+            }
+
+            if ((Attributes & Attribute.DivineShield) != 0)
             {
                 Attributes &= ~Attribute.DivineShield;
                 return (false, true);
@@ -50,15 +80,23 @@ namespace BGSimulator.Model
 
             Health -= damage;
 
-            if (damage > 0)
-                return (true, false);
+            return (true, false);
+        }
 
-            return (false, false);
+        public void RemoveTempBuff(IMinion minion)
+        {
+            Buff buff;
+            if (TempBuffs.TryGetValue(minion, out buff))
+            {
+                TempBuffs.Remove(minion);
+                Health += buff.Health;
+                Attack += buff.Attack;
+            }
         }
 
         public override string ToString()
         {
-            return string.Format("[{0}][{1}][{2}]", Name, Attack, Health);
+            return string.Format("[{0}][{1}][{2}]", Name, CurrentAttack, CurrentHealth);
         }
     }
 }

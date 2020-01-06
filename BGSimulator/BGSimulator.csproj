@@ -57,6 +57,7 @@
     </ApplicationDefinition>
     <Compile Include="Model\Battle.cs" />
     <Compile Include="Model\BrainBase.cs" />
+    <Compile Include="Model\Buff.cs" />
     <Compile Include="Model\CardBase.cs" />
     <Compile Include="Model\Enums.cs" />
     <Compile Include="Model\IBrain.cs" />
