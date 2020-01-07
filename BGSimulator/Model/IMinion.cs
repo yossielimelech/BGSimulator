@@ -24,7 +24,7 @@ namespace BGSimulator.Model
         Action<TriggerParams> OnMinionDied { get; set; }
         Action<TriggerParams> OnMinionLostDivineShield { get; set; }
         Action<TriggerParams> OnMinionSummon { get; set; }
-        Action<TriggerParams> OnSummonSelf { get; set; }
+        Action<TriggerParams> OnApplyAura { get; set; }
         Action<TriggerParams> OnTurnEnd { get; set; }
         Action<TriggerParams> OnTurnStart { get; set; }
         Action<TriggerParams> OnPlayerDamage { get; set; }
@@ -33,7 +33,9 @@ namespace BGSimulator.Model
         bool PoolMinion { get; set; }
         MinionTag Tags { get; set; }
         MinionType ValidTargets { get; set; }
-        IMinion Clone(bool fullClone = false);
+        IMinion Clone(bool keepBuffs = false);
         (bool tookDamage, bool lostDivine) TakeDamage(int damage);
+        void AddAura(IMinion buffer, Buff buff);
+        void RemoveAura(IMinion minion);
     }
 }

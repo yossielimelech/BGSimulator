@@ -35,6 +35,7 @@ namespace BGSimulator.Model
         PlayerImmunity = 2,
         BattleCry = 4,
         Magnetic = 8,
+        Aura = 16,
     }
 
     [Flags]

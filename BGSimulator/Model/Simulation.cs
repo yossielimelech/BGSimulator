@@ -172,7 +172,7 @@ namespace BGSimulator.Model
 
         private bool GameOver()
         {
-            return players.Select(p => !p.IsDead).ToList().Count == 1;
+            return players.Select(p => !p.IsDead).ToList().Count <= 1;
         }
     }
 }

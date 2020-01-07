@@ -192,7 +192,7 @@ namespace BGSimulator.Model
                     if (Hand.Contains(minion))
                         Hand.Remove(minion);
                     if (Board.PlayedMinions.Contains(minion))
-                        Board.PlayedMinions.Remove(minion);
+                        Board.Remove(minion);
                 }
 
                 var golden = BobsTavern.CreateGolden(this, tripple);
@@ -307,6 +307,11 @@ namespace BGSimulator.Model
             BobsTavern.Sell(minion);
 
             Console.WriteLine(string.Format(@"Round {2}: {0} has sold a minion {1}", Name, minion.Name, Simulation.Instance.Round));
+        }
+
+        public override string ToString()
+        {
+            return ($"{Name}({Health})");
         }
     }
 }

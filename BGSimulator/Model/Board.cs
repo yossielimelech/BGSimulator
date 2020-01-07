@@ -46,12 +46,20 @@ namespace BGSimulator.Model
             }
         }
 
-        public void Buff(IMinion buffer, IMinion minion, int attack = 0, int health = 0, Attribute attributes = Attribute.None, Action<TriggerParams> deathRattle = null, bool temp = false)
+        public void ApplyAuras(Board rivalBoard)
+        {
+            foreach (var minion in PlayedMinions.Where(m => (m.Tags & MinionTag.Aura) != 0))
+            {
+                minion.OnApplyAura(new TriggerParams() { Activator = minion, Board = this, Player = Player, RivalBoard = rivalBoard });
+            }
+        }
+
+        public void Buff(IMinion buffer, IMinion minion, int attack = 0, int health = 0, Attribute attributes = Attribute.None, Action<TriggerParams> deathRattle = null, bool aura = false)
         {
             int amount = buffer?.Level ?? 1;
             for (int i = 0; i < amount; i++)
             {
-                if (!temp)
+                if (!aura)
                 {
                     minion.Attack += attack;
                     minion.Health += health;
@@ -59,13 +67,20 @@ namespace BGSimulator.Model
                 }
                 else
                 {
-                    minion.TempBuffs.Add(buffer, new Buff() { Attack = attack, Health = health, Attribute = attributes });
-                    buffer.OnDeath += (tp) => { minion.TempBuffs.Remove(buffer); };
+                    minion.AddAura(buffer, new Buff() { Attack = attack, Health = health, Attribute = attributes });
                 }
                 if (deathRattle != null)
                 {
                     minion.OnDeath += deathRattle;
                 }
+            }
+        }
+
+        private void RemoveAura(IMinion buffer)
+        {
+            foreach (var minion in PlayedMinions)
+            {
+                minion.RemoveAura(buffer);
             }
         }
 
@@ -271,9 +286,8 @@ namespace BGSimulator.Model
 
         public IMinion RemoveSmallestMinion()
         {
-
             var minion = PlayedMinions.OrderBy(m => m.Health).ThenBy(m => m.Attack).First();
-            PlayedMinions.Remove(minion);
+            Remove(minion);
             return minion;
         }
 
@@ -292,7 +306,7 @@ namespace BGSimulator.Model
         public void Play(IMinion minion, int index = 0, IMinion target = null)
         {
             OnMinionSummon(minion, index);
-            minion.OnSummonSelf(new TriggerParams() { Activator = minion, Index = index, Board = this, Player = Player });
+            minion.OnApplyAura(new TriggerParams() { Activator = minion, Index = index, Board = this, Player = Player });
             PlayedMinions.Insert(index, minion);
             for (int j = 0; j < minion.Level; j++)
             {
@@ -301,22 +315,10 @@ namespace BGSimulator.Model
 
         }
 
-        public void Remove(IMinion defendingMinion)
+        public void Remove(IMinion minion)
         {
-            int i = PlayedMinions.IndexOf(defendingMinion);
-            if (i < NextAttacker)
-            {
-                NextAttacker--;
-            }
-            PlayedMinions.Remove(defendingMinion);
-        }
-
-        public IMinion RemoveRandomMinion()
-        {
-            int index = RandomNumber(0, PlayedMinions.Count);
-            var minion = PlayedMinions[index];
+            RemoveAura(minion);
             PlayedMinions.Remove(minion);
-            return minion;
         }
 
         public void RoundEnd()
@@ -388,7 +390,7 @@ namespace BGSimulator.Model
                 minion.Attack += magnetic.Attack;
                 minion.Health += magnetic.Health;
                 minion.Attributes |= magnetic.Attributes;
-                PlayedMinions.Remove(magnetic);
+                Remove(magnetic);
                 Pool.Instance.Return(magnetic);
             }
         }
@@ -404,7 +406,7 @@ namespace BGSimulator.Model
                 {
                     deaths[minion] = i;
                     int index = PlayedMinions.IndexOf(minion);
-                    PlayedMinions.Remove(minion);
+                    Remove(minion);
                     Graveyard.Add(minion);
                 }
             }

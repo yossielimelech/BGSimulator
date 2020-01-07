@@ -13,12 +13,16 @@ namespace BGSimulator.Model
 
         public void Start()
         {
+
             var attacker = FirstAttacker();
             var defender = attacker.CurrentMatch;
 
-            //clone because we want to save the state at the start of the fight.
+            //clone again because we want to save the state at the start of the fight.
             var attackerBoard = attacker.Board.Clone();
             var defenderBoard = defender.Board.Clone();
+
+            attackerBoard.ApplyAuras(defenderBoard);
+            defenderBoard.ApplyAuras(attackerBoard);
 
             while (!attackerBoard.IsEmpty && !defenderBoard.IsEmpty)
             {
@@ -35,9 +39,9 @@ namespace BGSimulator.Model
         private static void PrintBoardState(Board attackerBoard, Board defenderBoard)
         {
             Console.WriteLine();
-            Console.WriteLine("{0} Board", attackerBoard.Player.Name);
+            Console.WriteLine("{0} Board", attackerBoard.Player);
             Console.WriteLine(string.Format(string.Join((" | "), attackerBoard.PlayedMinions)));
-            Console.WriteLine("{0} Board", defenderBoard.Player.Name);
+            Console.WriteLine("{0} Board", defenderBoard.Player);
             Console.WriteLine(string.Format(string.Join((" | "), defenderBoard.PlayedMinions)));
             Console.WriteLine();
         }

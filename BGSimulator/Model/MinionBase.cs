@@ -5,6 +5,10 @@ namespace BGSimulator.Model
 {
     public class MinionBase : CardBase, IMinion
     {
+        public MinionBase()
+        {
+        }
+
         public MinionType MinionType { get; set; }
         public int NumberOfCopies { get; set; }
         public MinionTier MinionTier { get; set; } = MinionTier.Ranks[1];
@@ -45,7 +49,7 @@ namespace BGSimulator.Model
         public Action<TriggerParams> OnDeath { get; set; } = delegate { };
         public Action<TriggerParams> OnTurnStart { get; set; } = delegate { };
         public Action<TriggerParams> OnTurnEnd { get; set; } = delegate { };
-        public Action<TriggerParams> OnSummonSelf { get; set; } = delegate { };
+        public Action<TriggerParams> OnApplyAura { get; set; } = delegate { };
         public Action<TriggerParams> OnMinionSummon { get; set; } = delegate { };
         public Action<TriggerParams> OnAttack { get; set; } = delegate { };
         public Action<TriggerParams> OnMinionAttacked { get; set; } = delegate { };
@@ -55,14 +59,19 @@ namespace BGSimulator.Model
         public Action<TriggerParams> OnMinionLostDivineShield { get; set; } = delegate { };
         public Action<TriggerParams> OnBoardChanged { get; set; } = delegate { };
         public Action<TriggerParams> OnPlayerDamage { get; set; } = delegate { };
-        public Dictionary<IMinion, Buff> TempBuffs { get; set; } = new Dictionary<IMinion, Buff>();
+        public Dictionary<IMinion, Buff> TempBuffs { get; set; }
 
         public bool IsDead { get { return CurrentHealth <= 0; } }
 
 
-        public IMinion Clone(bool fullClone = false)
+        public IMinion Clone(bool keepBuffs = false)
         {
-            return this.MemberwiseClone() as IMinion;
+            var clone = this.MemberwiseClone() as IMinion;
+            if (!keepBuffs)
+            {
+                clone.TempBuffs = new Dictionary<IMinion, Buff>();
+            }
+            return clone;
         }
 
         public (bool tookDamage, bool lostDivine) TakeDamage(int damage)
@@ -83,20 +92,28 @@ namespace BGSimulator.Model
             return (true, false);
         }
 
-        public void RemoveTempBuff(IMinion minion)
+        public void RemoveAura(IMinion minion)
         {
             Buff buff;
             if (TempBuffs.TryGetValue(minion, out buff))
             {
                 TempBuffs.Remove(minion);
-                Health += buff.Health;
-                Attack += buff.Attack;
+                Health -= buff.Health;
+                Attack -= buff.Attack;
             }
         }
 
         public override string ToString()
         {
             return string.Format("[{0}][{1}][{2}]", Name, CurrentAttack, CurrentHealth);
+        }
+
+        public void AddAura(IMinion buffer, Buff buff)
+        {
+            if (TempBuffs.ContainsKey(buffer))
+                return;
+
+            TempBuffs.Add(buffer, buff);
         }
     }
 }
