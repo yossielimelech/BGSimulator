@@ -220,7 +220,7 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Neutral, Name = "Baron Rivendare", Cost = 4, Rarity = Rarity.Legendary, Attack = 1, Health = 7, MinionTier = MinionTier.Ranks[5] }, // ***
 
-                new MinionBase() { MinionType = MinionType.Neutral, Name = "Brann Bronzebeard", Cost = 3, Rarity = Rarity.Legendary, Attack = 2, Health = 4, MinionTier = MinionTier.Ranks[5] }, // ***
+                new MinionBase() { MinionType = MinionType.Neutral, Name = "Brann Bronzebeard", Cost = 3, Rarity = Rarity.Legendary, Attack = 2, Health = 4, MinionTier = MinionTier.Ranks[5], OnApplyAura = (tp) => { tp.Board.SetBattlecryAura(tp.Activator); } },
 
                 new MinionBase() { MinionType = MinionType.Beast, Name = "Goldrinn, the Great Wolf", Cost = 8, Rarity = Rarity.Legendary, Attack = 4, Health = 4, MinionTier = MinionTier.Ranks[5], Attributes = Attribute.DeathRattle, OnDeath = (tp) => { tp.Board.BuffAllOfType(tp.Activator, MinionType.Beast, 4, 4); } },
 

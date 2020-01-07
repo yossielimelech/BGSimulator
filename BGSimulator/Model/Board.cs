@@ -76,12 +76,15 @@ namespace BGSimulator.Model
             }
         }
 
-        private void RemoveAura(IMinion buffer)
+        private void RemoveAuras(IMinion minion)
         {
-            foreach (var minion in PlayedMinions)
+            foreach (var m in PlayedMinions)
             {
-                minion.RemoveAura(buffer);
+                m.RemoveAura(minion);
             }
+
+            if (BattleCryAura.ContainsKey(minion))
+                BattleCryAura.Remove(minion);
         }
 
         public void BuffAdapt(Adapt adapt, int index)
@@ -209,6 +212,7 @@ namespace BGSimulator.Model
         {
             var board = this.MemberwiseClone() as Board;
             board.PlayedMinions = this.PlayedMinions.Select(m => m.Clone()).ToList();
+            board.BattleCryAura.Clear();
             board.Graveyard = new List<IMinion>();
             return board;
         }
@@ -307,17 +311,19 @@ namespace BGSimulator.Model
         {
             OnMinionSummon(minion, index);
             minion.OnApplyAura(new TriggerParams() { Activator = minion, Index = index, Board = this, Player = Player });
+            int auraLevel = BattleCryAura.Select(b => b.Value).DefaultIfEmpty().Max() + 1;
             PlayedMinions.Insert(index, minion);
-            for (int j = 0; j < minion.Level; j++)
+            for (int j = 0; j < auraLevel; j++)
             {
                 minion.OnPlayed(new TriggerParams() { Activator = minion, Index = index, Target = target, Board = this, Player = Player });
             }
+
 
         }
 
         public void Remove(IMinion minion)
         {
-            RemoveAura(minion);
+            RemoveAuras(minion);
             PlayedMinions.Remove(minion);
         }
 
@@ -482,6 +488,12 @@ namespace BGSimulator.Model
             {
                 minion.OnMinionDamaged(new TriggerParams() { Activator = minion, Board = this, Target = tookDamage });
             }
+        }
+
+        Dictionary<IMinion, int> BattleCryAura = new Dictionary<IMinion, int>();
+        public void SetBattlecryAura(IMinion activator)
+        {
+            BattleCryAura.Add(activator, activator.Level);
         }
     }
 }
