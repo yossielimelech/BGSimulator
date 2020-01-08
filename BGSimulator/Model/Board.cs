@@ -145,7 +145,7 @@ namespace BGSimulator.Model
 
         public void BuffAllOfType(IMinion buffer, MinionType type, int attack = 0, int health = 0, Attribute attributes = Attribute.None, Action<TriggerParams> deathRattle = null, bool temp = false)
         {
-            foreach (var minion in PlayedMinions)
+            foreach (var minion in PlayedMinions.Where(m => m != buffer))
             {
                 if ((type & minion.MinionType) != 0)
                 {
