@@ -148,9 +148,9 @@ namespace BGSimulator.Model
             }
         }
 
-        public void TakeDamage(int damage)
+        public void TakeDamage(int damage, bool always = false)
         {
-            if (Board.PlayedMinions.Any(m => m.Tags.HasFlag(MinionTag.PlayerImmunity)))
+            if (damage ==0 || (!always && Board.PlayedMinions.Any(m => m.Tags.HasFlag(MinionTag.PlayerImmunity))))
                 return;
 
             Health -= damage;

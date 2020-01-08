@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using static BGSimulator.Utils.RandomUtils;
 
 namespace BGSimulator.Model
@@ -34,6 +35,12 @@ namespace BGSimulator.Model
                 attackerBoard = defenderBoard;
                 defenderBoard = temp;
             }
+
+            int attackerDamage = attackerBoard.PlayedMinions.Select(m => m.MinionTier.Tier).Sum();
+            int defenderDamage = defenderBoard.PlayedMinions.Select(m => m.MinionTier.Tier).Sum();
+            attackerBoard.Player.TakeDamage(defenderDamage, always: true);
+            defenderBoard.Player.TakeDamage(attackerDamage, always: true);
+            
         }
 
         private static void PrintBoardState(Board attackerBoard, Board defenderBoard)

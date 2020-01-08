@@ -8,7 +8,7 @@ namespace BGSimulator.Model
 {
     public class Simulation
     {
-        private const int NUM_OF_PLAYERS = 2;
+        private const int NUM_OF_PLAYERS = 8;
         private const int MAX_GOLD = 10;
         private Player LastPlayerDied;
         private BobsTavern shop;
@@ -58,7 +58,7 @@ namespace BGSimulator.Model
         private void PlayerDied(Player player)
         {
             LastPlayerDied = player;
-            Console.WriteLine(string.Format(@"DEATH: {0} has died a horrible death", LastPlayerDied.Name));
+            Console.WriteLine(string.Format(@"DEATH: {0} has died a horrible death", LastPlayerDied));
         }
 
         public async void Start()
@@ -68,6 +68,9 @@ namespace BGSimulator.Model
                 await BeginRoundAsync();
                 Round++;
             }
+
+            Console.WriteLine(string.Format(@"WINNER: {0} won the match, congratz!", players.First(p => !p.IsDead)));
+            
         }
 
         private async Task BeginRoundAsync()
@@ -172,7 +175,7 @@ namespace BGSimulator.Model
 
         private bool GameOver()
         {
-            return players.Select(p => !p.IsDead).ToList().Count <= 1;
+            return players.Where(p => !p.IsDead).Count() <= 1;
         }
     }
 }

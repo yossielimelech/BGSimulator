@@ -90,7 +90,7 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Neutral, Name = "Righteous Protector", Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[1], Attributes = Attribute.Taunt | Attribute.DivineShield },
 
-                new MinionBase() { MinionType = MinionType.Mech, Name = "Rockpool Hunter", Cost = 2, Attack = 2, Health = 3, MinionTier = MinionTier.Ranks[1], Tags = MinionTag.Targeted | MinionTag.BattleCry, ValidTargets = MinionType.Murloc, OnPlayed =(tp) => { if(tp.Target == null) return; tp.Board.Buff(tp.Activator, minion: tp.Target, attack: 1, health: 1); } },
+                new MinionBase() { MinionType = MinionType.Murloc, Name = "Rockpool Hunter", Cost = 2, Attack = 2, Health = 3, MinionTier = MinionTier.Ranks[1], Tags = MinionTag.Targeted | MinionTag.BattleCry, ValidTargets = MinionType.Murloc, OnPlayed =(tp) => { if(tp.Target == null) return; tp.Board.Buff(tp.Activator, minion: tp.Target, attack: 1, health: 1); } },
 
                 new MinionBase() { MinionType = MinionType.Neutral, Name = "Selfles s Hero", Attack = 2, Health = 1, MinionTier = MinionTier.Ranks[1], OnDeath = (tp) => { for (int i = 0; i < tp.Activator.Level; i++) { tp.Board.BuffRandom(null, attributes: Attribute.DivineShield); } } },
 
@@ -160,7 +160,7 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Beast, Name = "Spider", Attack = 1, Health = 1, MinionTier = MinionTier.Ranks[1], },
 
-                new MinionBase() { MinionType = MinionType.Neutral, Name = "Khadgar", Cost = 2, Rarity = Rarity.Legendary, Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[3] }, // ***
+                new MinionBase() { MinionType = MinionType.Neutral, Name = "Khadgar", Cost = 2, Rarity = Rarity.Legendary, Attack = 2, Health = 2, MinionTier = MinionTier.Ranks[3], Tags = MinionTag.Aura, OnApplyAura = (tp) => { tp.Board.SetSummonAura(tp.Activator);  } },
 
                 new MinionBase() { MinionType = MinionType.Neutral, Name = "Pack Leader", Cost = 3, Attack = 3, Health = 3, MinionTier = MinionTier.Ranks[3], OnMinionSummon = (tp) => { if(tp.Summon == null || tp.Summon.MinionType != MinionType.Beast) return; tp.Board.Buff(tp.Activator, tp.Summon, 3); } }, //cost unkonwen
 

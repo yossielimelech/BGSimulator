@@ -85,6 +85,9 @@ namespace BGSimulator.Model
 
             if (BattleCryAura.ContainsKey(minion))
                 BattleCryAura.Remove(minion);
+
+            if(SummonAura.ContainsKey(minion))
+                SummonAura.Remove(minion);
         }
 
         public void BuffAdapt(Adapt adapt, int index)
@@ -213,6 +216,7 @@ namespace BGSimulator.Model
             var board = this.MemberwiseClone() as Board;
             board.PlayedMinions = this.PlayedMinions.Select(m => m.Clone()).ToList();
             board.BattleCryAura.Clear();
+            board.SummonAura.Clear();
             board.Graveyard = new List<IMinion>();
             return board;
         }
@@ -300,7 +304,7 @@ namespace BGSimulator.Model
             for (int i = 0; i < repeat; i++)
             {
                 var minion = rivalBoard.GetRandomMinion();
-                if(minion != null)
+                if (minion != null)
                 {
                     rivalBoard.MinionTakeDamage(minion, damage);
                 }
@@ -353,6 +357,7 @@ namespace BGSimulator.Model
             }
         }
 
+        private Dictionary<IMinion, int> SummonAura = new Dictionary<IMinion, int>();
         public void Summon(string minionName, int index, Direction direction = Direction.Right, int amount = 1, bool golden = false)
         {
             for (int i = 0; i < amount; i++)
@@ -365,6 +370,20 @@ namespace BGSimulator.Model
                 var summoned = Pool.Instance.GetFreshCopy(minionName);
                 PlayedMinions.Insert(index + (int)direction, summoned);
                 OnMinionSummon(summoned, index);
+
+                ActivateSummonAura(index, direction, summoned);
+            }
+        }
+
+        private void ActivateSummonAura(int index, Direction direction, IMinion summoned)
+        {
+            int auraLevel = SummonAura.Select(b => b.Value).DefaultIfEmpty().Max();
+            for (int j = 0; j < auraLevel; j++)
+            {
+                if (IsFull)
+                    break;
+                var copy = summoned.Clone();
+                PlayedMinions.Insert(index + (int)direction, copy);
             }
         }
 
@@ -383,6 +402,11 @@ namespace BGSimulator.Model
             {
                 Summon(minion.Name, index, direction);
             }
+        }
+
+        public void SetSummonAura(IMinion activator)
+        {
+            SummonAura[activator] = activator.Level;
         }
 
         public void TryMagnet(IMinion magnetic, int index)
