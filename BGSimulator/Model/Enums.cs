@@ -35,6 +35,7 @@ namespace BGSimulator.Model
         BattleCry = 4,
         Magnetic = 8,
         DeathRattle = 16,
+        SpecialAttack = 32,
     }
 
     [Flags]

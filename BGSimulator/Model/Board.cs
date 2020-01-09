@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using static BGSimulator.Utils.RandomUtils;
 
@@ -17,11 +18,19 @@ namespace BGSimulator.Model
         public List<IMinion> Graveyard { get; set; }
         public bool IsEmpty { get { return PlayedMinions.Count == 0; } }
         public bool IsFull { get { return PlayedMinions.Count == BOARD_SIZE; } }
-        public List<IMinion> PlayedMinions { get; set; }
+        public ObservableCollection<IMinion> PlayedMinions { get; set; }
         public Player Player { get; set; }
 
         private Dictionary<IMinion, AuraType> BoardAuras = new Dictionary<IMinion, AuraType>();
         private int NextAttacker { get; set; }
+
+        public void HookEvents()
+        {
+            PlayedMinions.CollectionChanged += PlayedMinions_CollectionChanged;
+            PlayedMinions_CollectionChanged();
+        }
+
+        public Board RivalBoard { get; set; }
 
         public void Attack(Board defenderBoard)
         {
@@ -34,59 +43,74 @@ namespace BGSimulator.Model
 
             int attacks = attackingMinion.Attributes.HasFlag(Attribute.WindFury) ? 2 : 1;
 
+            IMinion defendingMinion;
             for (int i = 0; i < attacks; i++)
             {
-                IMinion defendingMinion = defenderBoard.GetRandomDefender();
+                if (!attackingMinion.Keywords.HasFlag(Keywords.SpecialAttack))
+                {
+                    defendingMinion = defenderBoard.GetRandomDefender();
+                }
+                else
+                {
+                    defendingMinion = attackingMinion.OnAquireTargets(new TriggerParams() { Activator = attackingMinion, Board = this, Player = Player, RivalBoard = RivalBoard });
+                }
 
                 if (defendingMinion == null)
                     break;
 
                 Console.WriteLine(string.Format(@"{0} {1} Is Attacking {2} {3}", Player.Name, attackingMinion.ToString(), defenderBoard.Player.Name, defendingMinion.ToString()));
 
-                MinionAttack(attacker: attackingMinion, defender: defendingMinion, defenderBoard);
+                MinionAttack(attacker: attackingMinion, defender: defendingMinion);
             }
         }
 
-        public void ApplyAuras(Board rivalBoard)
+        public void ApplyAuras()
         {
             foreach (var minion in PlayedMinions)
             {
-                minion.OnApplyAura(new TriggerParams() { Activator = minion, Board = this, Player = Player, RivalBoard = rivalBoard });
+                minion.OnApplyAura(new TriggerParams() { Activator = minion, Board = this, Player = Player, RivalBoard = RivalBoard });
             }
         }
 
         public void Buff(IMinion buffer, IMinion minion, int attack = 0, int health = 0, Attribute attributes = Attribute.None, Action<TriggerParams> deathRattle = null, bool aura = false)
         {
             int amount = buffer?.Level ?? 1;
-            for (int i = 0; i < amount; i++)
+            attack *= amount;
+            health *= amount;
+
+            if (!aura)
             {
-                if (!aura)
-                {
-                    minion.Attack += attack;
-                    minion.Health += health;
-                    minion.Attributes |= attributes;
-                }
-                else
-                {
-                    minion.AddAura(buffer, new Buff() { Attack = attack, Health = health, Attribute = attributes });
-                }
-                if (deathRattle != null)
-                {
-                    minion.Keywords |= Keywords.DeathRattle;
-                    minion.OnDeath += deathRattle;
-                }
+                minion.Attack += attack;
+                minion.Health += health;
+                minion.Attributes |= attributes;
             }
+            else
+            {
+                minion.AddAura(buffer, new Buff() { Attack = attack, Health = health, Attribute = attributes });
+            }
+
+            if (deathRattle != null)
+            {
+                minion.Keywords |= Keywords.DeathRattle;
+                minion.OnDeath += deathRattle;
+            }
+
         }
 
         private void RemoveAuras(IMinion minion)
+        {
+            RemoveMinionAura(minion);
+
+            if (BoardAuras.ContainsKey(minion))
+                BoardAuras.Remove(minion);
+        }
+
+        private void RemoveMinionAura(IMinion minion)
         {
             foreach (var m in PlayedMinions)
             {
                 m.RemoveAura(minion);
             }
-
-            if (BoardAuras.ContainsKey(minion))
-                BoardAuras.Remove(minion);
         }
 
         public void BuffAdapt(Adapt adapt, int index)
@@ -135,33 +159,39 @@ namespace BGSimulator.Model
             BuffAllOfType(null, MinionType.Murloc, attack, health, attr, deathRattle);
         }
 
-        public void BuffAdjacent(IMinion minion, int attack, int health, Attribute attributes)
+        public void BuffAdjacent(IMinion minion, int attack = 0, int health = 0, Attribute attributes = Attribute.None, bool aura = false)
         {
+            if (aura)
+            {
+                RemoveMinionAura(minion);
+            }
+
             var adjacents = GetAdjacentMinions(minion);
+
             foreach (var adj in adjacents)
             {
-                Buff(minion, adj, attack, health, attributes);
+                Buff(minion, adj, attack, health, attributes, aura: aura);
             }
         }
 
-        public void BuffAllOfType(IMinion buffer, MinionType type, int attack = 0, int health = 0, Attribute attributes = Attribute.None, Action<TriggerParams> deathRattle = null, bool temp = false)
+        public void BuffAllOfType(IMinion buffer, MinionType type, int attack = 0, int health = 0, Attribute attributes = Attribute.None, Action<TriggerParams> deathRattle = null, bool aura = false)
         {
             foreach (var minion in PlayedMinions.Where(m => m != buffer))
             {
                 if ((type & minion.MinionType) != 0)
                 {
-                    Buff(buffer, minion, attack, health, attributes, deathRattle, temp);
+                    Buff(buffer, minion, attack, health, attributes, deathRattle, aura);
                 }
             }
         }
 
-        public void BuffAllWithAttribute(IMinion buffer, Attribute attribute, int attack, int health)
+        public void BuffAllWithAttribute(IMinion buffer, Attribute attribute, int attack, int health, bool aura = false)
         {
             foreach (var minion in PlayedMinions)
             {
                 if (minion.Attributes.HasFlag(attribute))
                 {
-                    Buff(buffer, minion, attack, health);
+                    Buff(buffer, minion, attack, health, aura: aura);
                 }
             }
         }
@@ -212,7 +242,7 @@ namespace BGSimulator.Model
         public Board Clone()
         {
             var board = this.MemberwiseClone() as Board;
-            board.PlayedMinions = this.PlayedMinions.Select(m => m.Clone()).ToList();
+            board.PlayedMinions = new ObservableCollection<IMinion>(PlayedMinions.Select(m => m.Clone()).ToList());
             board.BoardAuras.Clear();
             board.Graveyard = new List<IMinion>();
             return board;
@@ -262,19 +292,19 @@ namespace BGSimulator.Model
             return PlayedMinions.Where(m => (validTargets & m.MinionType) != 0).ToList();
         }
 
-        public void MinionAttack(IMinion attacker, IMinion defender, Board defenderBoard)
+        public void MinionAttack(IMinion attacker, IMinion defender)
         {
-            defenderBoard.MinionTakeDamage(defender, attacker.CurrentAttack);
-            MinionTakeDamage(attacker, defender.CurrentAttack);
+            var defenderResult = RivalBoard.MinionTakeDamage(defender, attacker.CurrentAttack);
+            var attackerResult = MinionTakeDamage(attacker, defender.CurrentAttack);
 
-            attacker.OnAttack(new TriggerParams() { Activator = attacker, Target = defender, Board = this, RivalBoard = defenderBoard });
+            attacker.OnAttack(new TriggerParams() { Activator = attacker, Target = defender, Board = this, RivalBoard = RivalBoard, Overkill = defenderResult.overkill, Killed = defenderResult.killed });
             OnMinionAttacked(attacker);
 
-            ClearDeaths(defenderBoard);
-            defenderBoard.ClearDeaths(this);
+            ClearDeaths();
+            RivalBoard.ClearDeaths();
         }
 
-        public void MinionTakeDamage(IMinion minion, int damage)
+        public (bool tookDamage, bool lostDivine, bool overkill, bool killed) MinionTakeDamage(IMinion minion, int damage)
         {
             var damageResult = minion.TakeDamage(damage);
             if (damageResult.tookDamage)
@@ -287,6 +317,8 @@ namespace BGSimulator.Model
             {
                 OnMinionLostDivineShield(minion);
             }
+
+            return damageResult;
         }
 
         public IMinion RemoveSmallestMinion()
@@ -296,14 +328,14 @@ namespace BGSimulator.Model
             return minion;
         }
 
-        public void ShootRandomMinion(int damage, Board rivalBoard, int repeat = 1)
+        public void ShootRandomMinion(int damage, int repeat = 1)
         {
             for (int i = 0; i < repeat; i++)
             {
-                var minion = rivalBoard.GetRandomMinion();
+                var minion = RivalBoard.GetRandomMinion();
                 if (minion != null)
                 {
-                    rivalBoard.MinionTakeDamage(minion, damage);
+                    RivalBoard.MinionTakeDamage(minion, damage);
                 }
             }
         }
@@ -416,7 +448,7 @@ namespace BGSimulator.Model
             }
         }
 
-        private void ClearDeaths(Board rivalBoard)
+        private void ClearDeaths()
         {
             Dictionary<IMinion, int> deaths = new Dictionary<IMinion, int>();
 
@@ -434,8 +466,13 @@ namespace BGSimulator.Model
 
             foreach (var kv in deaths)
             {
-                kv.Key.OnDeath(new TriggerParams() { Activator = kv.Key, Board = this, RivalBoard = rivalBoard, Index = kv.Value });
-                OnMinionDied(kv.Key, rivalBoard);
+                int auraLevel = BoardAuras.Where(a => a.Value == AuraType.Deathrattle).Select(b => b.Key.Level).DefaultIfEmpty().Max() + 1;
+                for (int i = 0; i < auraLevel; i++)
+                {
+                    kv.Key.OnDeath(new TriggerParams() { Activator = kv.Key, Board = this, RivalBoard = RivalBoard, Index = kv.Value });
+                }
+
+                OnMinionDied(kv.Key);
             }
         }
 
@@ -460,7 +497,17 @@ namespace BGSimulator.Model
 
         private void Initialize()
         {
-            PlayedMinions = new List<IMinion>();
+            PlayedMinions = new ObservableCollection<IMinion>();
+            PlayedMinions.CollectionChanged += PlayedMinions_CollectionChanged;
+        }
+
+        private void PlayedMinions_CollectionChanged(object sender = null, System.Collections.Specialized.NotifyCollectionChangedEventArgs e = null)
+        {
+            foreach (var minion in PlayedMinions)
+            {
+                minion.OnBoardChanged(new TriggerParams() { Activator = minion, Board = this, Player = Player });
+                minion.OnBattlefieldChanged(new TriggerParams() { Activator = minion, Board = this, Player = Player, RivalBoard = RivalBoard });
+            }
         }
 
         private void OnMinionAttacked(IMinion attacker)
@@ -471,14 +518,14 @@ namespace BGSimulator.Model
             }
         }
 
-        private void OnMinionDied(IMinion deadMinion, Board rivalBoad)
+        private void OnMinionDied(IMinion deadMinion)
         {
             for (int i = 0; i < PlayedMinions.Count; i++)
             {
-                PlayedMinions[i].OnMinionDied(new TriggerParams() { Activator = PlayedMinions[i], Target = deadMinion, Board = this, RivalBoard = rivalBoad });
+                PlayedMinions[i].OnMinionDied(new TriggerParams() { Activator = PlayedMinions[i], Target = deadMinion, Board = this, RivalBoard = RivalBoard });
             }
 
-            rivalBoad.ClearDeaths(this);
+            RivalBoard.ClearDeaths();
         }
 
         private void OnMinionLostDivineShield(IMinion lostDivine)
@@ -508,6 +555,15 @@ namespace BGSimulator.Model
         public void AddAura(IMinion activator, AuraType aura)
         {
             BoardAuras.Add(activator, aura);
+        }
+
+        public IMinion GetMinionWithMinAttack()
+        {
+            List<IMinion> targets = PlayedMinions.GroupBy(m => m.Attack).OrderBy(g => g.Key).FirstOrDefault()?.Select(m => m).ToList();
+            if(targets != null)
+                return targets[RandomNumber(0, targets.Count)];
+
+            return null;
         }
     }
 }

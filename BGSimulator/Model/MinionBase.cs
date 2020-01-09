@@ -7,7 +7,10 @@ namespace BGSimulator.Model
     {
         public MinionBase()
         {
+            damageTaken = 0;
         }
+
+        private int damageTaken;
 
         public MinionType MinionType { get; set; }
         public int NumberOfCopies { get; set; }
@@ -28,7 +31,7 @@ namespace BGSimulator.Model
                 {
                     currHealth += buff.Health;
                 }
-                return currHealth;
+                return currHealth - damageTaken;
             }
         }
 
@@ -60,9 +63,11 @@ namespace BGSimulator.Model
         public Action<TriggerParams> OnBoardChanged { get; set; } = delegate { };
         public Action<TriggerParams> OnPlayerDamage { get; set; } = delegate { };
         public Dictionary<IMinion, Buff> TempBuffs { get; set; }
-
+        public Action<TriggerParams> OnBattlefieldChanged { get; set; } = delegate { };
+        public Func<TriggerParams, IMinion> OnAquireTargets { get; set; } = delegate { return null; };
         public bool IsDead { get { return CurrentHealth <= 0; } }
 
+        public IMinion Contained { get; set; }
 
         public IMinion Clone(bool keepBuffs = false)
         {
@@ -74,22 +79,22 @@ namespace BGSimulator.Model
             return clone;
         }
 
-        public (bool tookDamage, bool lostDivine) TakeDamage(int damage)
+        public (bool tookDamage, bool lostDivine, bool overkill, bool killed) TakeDamage(int damage)
         {
             if (damage == 0)
             {
-                return (false, false);
+                return (false, false, false, false);
             }
 
             if ((Attributes & Attribute.DivineShield) != 0)
             {
                 Attributes &= ~Attribute.DivineShield;
-                return (false, true);
+                return (false, true, false, false);
             }
 
-            Health -= damage;
+            damageTaken += damage;
 
-            return (true, false);
+            return (true, false, CurrentHealth < 0, CurrentHealth <= 0);
         }
 
         public void RemoveAura(IMinion minion)
@@ -97,9 +102,10 @@ namespace BGSimulator.Model
             Buff buff;
             if (TempBuffs.TryGetValue(minion, out buff))
             {
+                damageTaken -= buff.Health;
+                if (damageTaken < 0)
+                    damageTaken = 0;
                 TempBuffs.Remove(minion);
-                Health -= buff.Health;
-                Attack -= buff.Attack;
             }
         }
 
@@ -110,10 +116,7 @@ namespace BGSimulator.Model
 
         public void AddAura(IMinion buffer, Buff buff)
         {
-            if (TempBuffs.ContainsKey(buffer))
-                return;
-
-            TempBuffs.Add(buffer, buff);
+            TempBuffs[buffer] = buff;
         }
     }
 }

@@ -22,8 +22,14 @@ namespace BGSimulator.Model
             var attackerBoard = attacker.Board.Clone();
             var defenderBoard = defender.Board.Clone();
 
-            attackerBoard.ApplyAuras(defenderBoard);
-            defenderBoard.ApplyAuras(attackerBoard);
+            attackerBoard.RivalBoard = defenderBoard;
+            defenderBoard.RivalBoard = attackerBoard;
+
+            attackerBoard.HookEvents();
+            defenderBoard.HookEvents();
+
+            attackerBoard.ApplyAuras();
+            defenderBoard.ApplyAuras();
 
             while (!attackerBoard.IsEmpty && !defenderBoard.IsEmpty)
             {

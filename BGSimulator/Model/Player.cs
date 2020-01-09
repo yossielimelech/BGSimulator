@@ -68,6 +68,7 @@ namespace BGSimulator.Model
 
         public void PlayRound()
         {
+            RoundStart();
             Board.RoundStart();
             bool done = false;
 
@@ -129,6 +130,14 @@ namespace BGSimulator.Model
             TryFreeze();
 
             Board.RoundEnd();
+        }
+
+        private void RoundStart()
+        {
+            foreach (var minion in Hand.Where(h => h is IMinion).Cast<IMinion>())
+            {
+                minion.OnTurnStart(new TriggerParams() { Activator = minion, Player = this });
+            }
         }
 
         private void TryFreeze()
@@ -272,7 +281,15 @@ namespace BGSimulator.Model
         private void PlayMinion(IMinion minion)
         {
             IMinion target = null;
-            if (minion.Keywords.HasFlag(Keywords.Targeted))
+            IMinion playMinion = minion;
+
+            if(minion.Contained != null)
+            {
+                playMinion = minion.Contained;
+            }
+
+
+            if (playMinion.Keywords.HasFlag(Keywords.Targeted))
             {
                 var targets = Board.GetValidTargets(minion.ValidTargets);
                 if (targets.Any())
@@ -281,8 +298,9 @@ namespace BGSimulator.Model
                 }
             }
 
-            if (Play(minion, target: target))
+            if (Play(playMinion, target: target))
             {
+                minion.Contained = null;
                 Hand.Remove(minion);
             }
         }

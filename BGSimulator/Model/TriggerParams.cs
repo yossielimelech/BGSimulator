@@ -16,5 +16,7 @@ namespace BGSimulator.Model
         public Player Player { get; set; }
         public int Index { get; set; }
         public int Damage { get; set; }
+        public bool Overkill { get; set; }
+        public bool Killed { get; set; }
     }
 }
