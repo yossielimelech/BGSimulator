@@ -31,7 +31,7 @@ namespace BGSimulator.Model
 
         Dictionary<IMinion, Buff> TempBuffs { get; set; }
         bool PoolMinion { get; set; }
-        MinionTag Tags { get; set; }
+        Keywords Keywords { get; set; }
         MinionType ValidTargets { get; set; }
         IMinion Clone(bool keepBuffs = false);
         (bool tookDamage, bool lostDivine) TakeDamage(int damage);

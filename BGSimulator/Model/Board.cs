@@ -20,6 +20,7 @@ namespace BGSimulator.Model
         public List<IMinion> PlayedMinions { get; set; }
         public Player Player { get; set; }
 
+        private Dictionary<IMinion, AuraType> BoardAuras = new Dictionary<IMinion, AuraType>();
         private int NextAttacker { get; set; }
 
         public void Attack(Board defenderBoard)
@@ -48,7 +49,7 @@ namespace BGSimulator.Model
 
         public void ApplyAuras(Board rivalBoard)
         {
-            foreach (var minion in PlayedMinions.Where(m => (m.Tags & MinionTag.Aura) != 0))
+            foreach (var minion in PlayedMinions)
             {
                 minion.OnApplyAura(new TriggerParams() { Activator = minion, Board = this, Player = Player, RivalBoard = rivalBoard });
             }
@@ -71,6 +72,7 @@ namespace BGSimulator.Model
                 }
                 if (deathRattle != null)
                 {
+                    minion.Keywords |= Keywords.DeathRattle;
                     minion.OnDeath += deathRattle;
                 }
             }
@@ -83,11 +85,8 @@ namespace BGSimulator.Model
                 m.RemoveAura(minion);
             }
 
-            if (BattleCryAura.ContainsKey(minion))
-                BattleCryAura.Remove(minion);
-
-            if(SummonAura.ContainsKey(minion))
-                SummonAura.Remove(minion);
+            if (BoardAuras.ContainsKey(minion))
+                BoardAuras.Remove(minion);
         }
 
         public void BuffAdapt(Adapt adapt, int index)
@@ -96,14 +95,13 @@ namespace BGSimulator.Model
             int health = 0;
             Attribute attr = Attribute.None;
 
-            Action<TriggerParams> deathRattle = (tp) => { tp.Board.Summon("Plant", tp.Index, Direction.InPlace, 2); };
+            Action<TriggerParams> deathRattle = null;
 
             switch (adapt)
             {
                 case Adapt.DeathRattle:
-                    attr |= Attribute.DeathRattle;
+                    deathRattle = (tp) => { tp.Board.Summon("Plant", tp.Index, Direction.InPlace, 2); };
                     break;
-
                 case Adapt.DivineShield:
                     attr |= Attribute.DivineShield;
                     break;
@@ -215,8 +213,7 @@ namespace BGSimulator.Model
         {
             var board = this.MemberwiseClone() as Board;
             board.PlayedMinions = this.PlayedMinions.Select(m => m.Clone()).ToList();
-            board.BattleCryAura.Clear();
-            board.SummonAura.Clear();
+            board.BoardAuras.Clear();
             board.Graveyard = new List<IMinion>();
             return board;
         }
@@ -315,14 +312,12 @@ namespace BGSimulator.Model
         {
             OnMinionSummon(minion, index);
             minion.OnApplyAura(new TriggerParams() { Activator = minion, Index = index, Board = this, Player = Player });
-            int auraLevel = BattleCryAura.Select(b => b.Value).DefaultIfEmpty().Max() + 1;
+            int auraLevel = BoardAuras.Where(a => a.Value == AuraType.BattleCry).Select(b => b.Key.Level).DefaultIfEmpty().Max() + 1;
             PlayedMinions.Insert(index, minion);
             for (int j = 0; j < auraLevel; j++)
             {
                 minion.OnPlayed(new TriggerParams() { Activator = minion, Index = index, Target = target, Board = this, Player = Player });
             }
-
-
         }
 
         public void Remove(IMinion minion)
@@ -358,6 +353,7 @@ namespace BGSimulator.Model
         }
 
         private Dictionary<IMinion, int> SummonAura = new Dictionary<IMinion, int>();
+
         public void Summon(string minionName, int index, Direction direction = Direction.Right, int amount = 1, bool golden = false)
         {
             for (int i = 0; i < amount; i++)
@@ -377,7 +373,7 @@ namespace BGSimulator.Model
 
         private void ActivateSummonAura(int index, Direction direction, IMinion summoned)
         {
-            int auraLevel = SummonAura.Select(b => b.Value).DefaultIfEmpty().Max();
+            int auraLevel = BoardAuras.Where(a => a.Value == AuraType.Summon).Select(b => b.Key.Level).DefaultIfEmpty().Max();
             for (int j = 0; j < auraLevel; j++)
             {
                 if (IsFull)
@@ -402,11 +398,6 @@ namespace BGSimulator.Model
             {
                 Summon(minion.Name, index, direction);
             }
-        }
-
-        public void SetSummonAura(IMinion activator)
-        {
-            SummonAura[activator] = activator.Level;
         }
 
         public void TryMagnet(IMinion magnetic, int index)
@@ -514,10 +505,9 @@ namespace BGSimulator.Model
             }
         }
 
-        Dictionary<IMinion, int> BattleCryAura = new Dictionary<IMinion, int>();
-        public void SetBattlecryAura(IMinion activator)
+        public void AddAura(IMinion activator, AuraType aura)
         {
-            BattleCryAura.Add(activator, activator.Level);
+            BoardAuras.Add(activator, aura);
         }
     }
 }

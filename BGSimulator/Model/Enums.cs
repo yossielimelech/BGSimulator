@@ -9,8 +9,7 @@ namespace BGSimulator.Model
         Taunt = 1,
         DivineShield = 2,
         Poison = 4,
-        WindFury = 8,
-        DeathRattle = 16
+        WindFury = 8
     }
 
     [Flags]
@@ -28,14 +27,14 @@ namespace BGSimulator.Model
     }
 
     [Flags]
-    public enum MinionTag
+    public enum Keywords
     {
         None = 0,
         Targeted = 1,
         PlayerImmunity = 2,
         BattleCry = 4,
         Magnetic = 8,
-        Aura = 16,
+        DeathRattle = 16,
     }
 
     [Flags]
@@ -65,5 +64,12 @@ namespace BGSimulator.Model
         Left = -1,
         InPlace = 0,
         Right = 1
+    }
+
+    public enum AuraType
+    {
+        BattleCry,
+        Summon,
+        Deathrattle
     }
 }

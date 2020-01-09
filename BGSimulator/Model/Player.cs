@@ -150,7 +150,7 @@ namespace BGSimulator.Model
 
         public void TakeDamage(int damage, bool always = false)
         {
-            if (damage ==0 || (!always && Board.PlayedMinions.Any(m => m.Tags.HasFlag(MinionTag.PlayerImmunity))))
+            if (damage ==0 || (!always && Board.PlayedMinions.Any(m => m.Keywords.HasFlag(Keywords.PlayerImmunity))))
                 return;
 
             Health -= damage;
@@ -272,7 +272,7 @@ namespace BGSimulator.Model
         private void PlayMinion(IMinion minion)
         {
             IMinion target = null;
-            if (minion.Tags.HasFlag(MinionTag.Targeted))
+            if (minion.Keywords.HasFlag(Keywords.Targeted))
             {
                 var targets = Board.GetValidTargets(minion.ValidTargets);
                 if (targets.Any())
