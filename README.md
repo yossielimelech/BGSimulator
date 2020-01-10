@@ -19,3 +19,6 @@ Current development stage: Building the Simulator mechanics.
 
 If you are intrested to contribute and improve the codebase feel free to ask.
 
+
+
+Copyright © Yossi Elimelech. All Rights Reserved.
