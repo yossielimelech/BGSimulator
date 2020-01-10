@@ -269,7 +269,7 @@ namespace BGSimulator.Model
 
                 new MinionBase() { MinionType = MinionType.Mech, Name = "Sneed's Old Shredder", Cost = 8, Rarity = Rarity.Legendary, Attack = 5, Health = 7, MinionTier = MinionTier.Ranks[6], Keywords = Keywords.DeathRattle, OnDeath = (tp) => { for(int i = 0; i < tp.Activator.Level; i++) { tp.Board.Summon(GetRandomMinions(m => m.Rarity == Rarity.Legendary && m.Name != tp.Activator.Name).First().Name, tp.Index, Direction.InPlace); } } },
 
-                new MinionBase() { MinionType = MinionType.Neutral, Name = "Zapp Slywick", Cost = 8, Rarity = Rarity.Legendary, Attack = 70, Health = 100, MinionTier = MinionTier.Ranks[6],Keywords = Keywords.SpecialAttack, Attributes = Attribute.WindFury, OnAquireTargets = (tp) => { return tp.RivalBoard.GetMinionWithMinAttack();  } },
+                new MinionBase() { MinionType = MinionType.Neutral, Name = "Zapp Slywick", Cost = 8, Rarity = Rarity.Legendary, Attack = 7, Health = 10, MinionTier = MinionTier.Ranks[6],Keywords = Keywords.SpecialAttack, Attributes = Attribute.WindFury, OnAquireTargets = (tp) => { return tp.RivalBoard.GetMinionWithMinAttack();  } },
             };
 
             BuildPool();
